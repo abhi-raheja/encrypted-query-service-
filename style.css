@@ -54,32 +54,83 @@ header p {
     color: #495057;
 }
 
-.view-buttons {
+.view-toggle-container {
     display: flex;
-    gap: 1rem;
+    align-items: center;
     justify-content: center;
+    gap: 1rem;
     margin-bottom: 1rem;
 }
 
-.view-btn {
-    padding: 0.75rem 1.5rem;
-    border: 2px solid #dee2e6;
-    background: white;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
+.view-label {
     font-weight: 500;
+    color: #495057;
+    min-width: 120px;
+    text-align: center;
 }
 
-.view-btn:hover {
-    border-color: #667eea;
-    color: #667eea;
+.view-toggle {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 30px;
 }
 
-.view-btn.active {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-color: #667eea;
+.view-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border-radius: 30px;
+    transition: all 0.3s ease;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 24px;
+    width: 24px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+input:checked + .toggle-slider {
+    background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(30px);
+}
+
+.view-toggle-container .view-label:first-child {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.view-toggle-container .view-label:last-child {
+    color: #6f42c1;
+    font-weight: 600;
+}
+
+input:checked ~ .view-label:first-child {
+    opacity: 0.6;
+}
+
+input:checked ~ .view-label:last-child {
+    opacity: 1;
 }
 
 .view-description {
@@ -427,14 +478,13 @@ header p {
         order: 2;
     }
     
-    .view-buttons {
+    .view-toggle-container {
         flex-direction: column;
-        align-items: center;
+        gap: 0.5rem;
     }
     
-    .view-btn {
-        width: 100%;
-        max-width: 300px;
+    .view-label {
+        min-width: auto;
     }
 }
 

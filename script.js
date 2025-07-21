@@ -449,7 +449,7 @@ const uiTestSuite = new TestSuite();
 uiTestSuite.addTest('Required DOM elements should exist', () => {
     const requiredElements = [
         'userInput', 'checkButton', 'resultsPanel', 
-        'coinflexViewBtn', 'mapleCEXViewBtn', 'partnerDataDisplay',
+        'viewToggle', 'partnerDataDisplay',
         'showTechnicalBtn', 'technicalPanel'
     ];
     
@@ -471,8 +471,7 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
         const sunscreenAPI = document.getElementById('sunscreenAPI');
         
         // View switching elements
-        const coinflexViewBtn = document.getElementById('coinflexViewBtn');
-        const mapleCEXViewBtn = document.getElementById('mapleCEXViewBtn');
+        const viewToggle = document.getElementById('viewToggle');
         const coinflexView = document.getElementById('coinflexView');
         const mapleCEXView = document.getElementById('mapleCEXView');
         const viewDescription = document.getElementById('viewDescription');
@@ -560,7 +559,7 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
                     <h4>⚠️ Risk Alert - ${riskLevel} RISK</h4>
                     <p><strong>Email:</strong> ${userEmail}</p>
                     <p><strong>Flagged Quarter:</strong> ${proofReceipt.result.flagged_quarter}</p>
-                    <p><strong>Status:</strong> <span style="background: ${riskColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;">${proofReceipt.result.status}</span></p>
+                    <p><strong>Match Field:</strong> ${proofReceipt.result.match_field}</p>
 
                     <div style="margin: 0.75rem 0;">
                         <strong>Risk Flags:</strong><br/>
@@ -583,23 +582,33 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
     }
 
     function updateTechnicalDetails(proofReceipt) {
+        // Create the external-only proof (what CoinFlex actually receives)
+        const externalProof = {
+            provider: proofReceipt.provider,
+            timestamp: proofReceipt.timestamp,
+            query_hash: proofReceipt.query_hash,
+            result: proofReceipt.result, // Only external result, no internal data
+            compliance: proofReceipt.compliance,
+            signature: proofReceipt.signature
+        };
+        
         const technicalHTML = `
             <div style="margin-bottom: 1rem;">
-                <h5>🔒 Cryptographic Proof Receipt:</h5>
-                <pre style="background: white; padding: 1rem; border-radius: 4px; overflow-x: auto; font-size: 0.8rem;">${JSON.stringify(proofReceipt, null, 2)}</pre>
+                <h5>🔒 Actual Proof Receipt (What CoinFlex Receives):</h5>
+                <pre style="background: white; padding: 1rem; border-radius: 4px; overflow-x: auto; font-size: 0.8rem;">${JSON.stringify(externalProof, null, 2)}</pre>
             </div>
             <div style="margin-bottom: 1rem;">
                 <h5>🔐 SHA-256 Details:</h5>
                 <p><strong>User Email Hash:</strong><br/><code style="word-break: break-all; background: #e9ecef; padding: 0.25rem; border-radius: 3px;">${proofReceipt.query_hash}</code></p>
                 <p><strong>Proof Signature:</strong><br/><code style="word-break: break-all; background: #e9ecef; padding: 0.25rem; border-radius: 3px;">${proofReceipt.signature || 'N/A'}</code></p>
             </div>
-            <div>
-                <h5>🎯 Privacy Analysis:</h5>
-                <ul style="margin: 0; padding-left: 1.5rem;">
-                    <li>Email was hashed locally before transmission</li>
-                    <li>Partner database searched using SHA-256 hash only</li>
-                    <li>Cryptographic signature prevents tampering</li>
-                    <li>Compliance-ready audit trail generated</li>
+            <div style="background: #fff3cd; padding: 1rem; border-radius: 4px; border-left: 4px solid #ffc107;">
+                <h5 style="margin: 0 0 0.5rem 0; color: #856404;">🎯 Privacy Protection in Action:</h5>
+                <ul style="margin: 0; padding-left: 1.5rem; color: #856404;">
+                    <li><strong>Email hashed locally</strong> - Raw email never transmitted</li>
+                    <li><strong>Minimal data sharing</strong> - Only risk tags and quarter, no internal status</li>
+                    <li><strong>No internal details</strong> - Case IDs, officers, notes stay private</li>
+                    <li><strong>Cryptographic proof</strong> - Tamper-evident and auditable</li>
                 </ul>
             </div>
         `;
@@ -678,21 +687,21 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
         `;
     }
 
-            // View switching functions
-        function switchToCoinflexView() {
-            coinflexViewBtn.classList.add('active');
-            mapleCEXViewBtn.classList.remove('active');
-            coinflexView.classList.remove('hidden');
-            mapleCEXView.classList.add('hidden');
-            viewDescription.textContent = 'You are CoinFlex onboarding a new user. Check if they\'re flagged by partner exchanges.';
-        }
-
-        function switchToMapleCEXView() {
-            mapleCEXViewBtn.classList.add('active');
-            coinflexViewBtn.classList.remove('active');
-            mapleCEXView.classList.remove('hidden');
-            coinflexView.classList.add('hidden');
-            viewDescription.textContent = 'You are Maple CEX. Your risk data helps partners detect bad actors while preserving privacy.';
+            // View switching function
+        function toggleView() {
+            const isMapleCEXView = viewToggle.checked;
+            
+            if (isMapleCEXView) {
+                // Switch to Maple CEX view
+                coinflexView.classList.add('hidden');
+                mapleCEXView.classList.remove('hidden');
+                viewDescription.textContent = 'You are Maple CEX. Your risk data helps partners detect bad actors while preserving privacy.';
+            } else {
+                // Switch to CoinFlex view
+                mapleCEXView.classList.add('hidden');
+                coinflexView.classList.remove('hidden');
+                viewDescription.textContent = 'You are CoinFlex onboarding a new user. Check if they\'re flagged by partner exchanges.';
+            }
         }
 
         function toggleTechnicalDetails() {
@@ -716,9 +725,8 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
             }
         });
         
-        // View switching listeners
-        coinflexViewBtn.addEventListener('click', switchToCoinflexView);
-        mapleCEXViewBtn.addEventListener('click', switchToMapleCEXView);
+        // View switching listener
+        viewToggle.addEventListener('change', toggleView);
         
         // Technical details toggle
         showTechnicalBtn.addEventListener('click', toggleTechnicalDetails);

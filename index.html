@@ -16,9 +16,13 @@
         <!-- View Selector -->
         <div class="view-selector">
             <h2>Demo Perspective:</h2>
-            <div class="view-buttons">
-                <button id="coinflexViewBtn" class="view-btn active">CoinFlex (Querying Exchange)</button>
-                <button id="mapleCEXViewBtn" class="view-btn">Maple CEX (Partner Exchange)</button>
+            <div class="view-toggle-container">
+                <span class="view-label">CoinFlex (Querying)</span>
+                <label class="view-toggle">
+                    <input type="checkbox" id="viewToggle">
+                    <span class="toggle-slider"></span>
+                </label>
+                <span class="view-label">Maple CEX (Partner)</span>
             </div>
             <p class="view-description">
                 <span id="viewDescription">You are CoinFlex onboarding a new user. Check if they're flagged by partner exchanges.</span>
@@ -103,16 +107,16 @@
         <div class="demo-instructions">
             <h3>🎯 How to Use This Demo:</h3>
             
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-                <div style="background: #e7f3ff; padding: 1rem; border-radius: 6px; border-left: 4px solid #0066cc;">
-                    <strong>👤 CoinFlex View (Default):</strong><br/>
-                    <small>Experience being an exchange checking a new user against partner networks</small>
-                </div>
-                <div style="background: #f8f9fa; padding: 1rem; border-radius: 6px; border-left: 4px solid #6c757d;">
-                    <strong>🏛️ Maple CEX View:</strong><br/>
-                    <small>See the partner exchange perspective and their internal risk database</small>
-                </div>
-            </div>
+                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                 <div style="background: #e7f3ff; padding: 1rem; border-radius: 6px; border-left: 4px solid #28a745;">
+                     <strong>👤 CoinFlex View (Left):</strong><br/>
+                     <small>Experience being an exchange checking a new user against partner networks</small>
+                 </div>
+                 <div style="background: #f3e5f5; padding: 1rem; border-radius: 6px; border-left: 4px solid #6f42c1;">
+                     <strong>🏛️ Maple CEX View (Right):</strong><br/>
+                     <small>See the partner exchange perspective and their internal risk database</small>
+                 </div>
+             </div>
 
             <h4>📧 Test Email Addresses:</h4>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem;">
@@ -134,15 +138,15 @@
                 </div>
             </div>
 
-            <h4>🔄 Demo Steps:</h4>
-            <ol style="line-height: 1.6;">
-                <li><strong>Start in CoinFlex view</strong> - You're onboarding a new user</li>
-                <li><strong>Enter a test email</strong> and click "Check User with Sunscreen"</li>
-                <li><strong>See the clean result</strong> - No technical details, just the decision</li>
-                <li><strong>Click "Show Technical Details"</strong> to see SHA-256 hashing and proof receipts</li>
-                <li><strong>Switch to Maple CEX view</strong> to see the partner's perspective</li>
-                <li><strong>Notice the "aha!" moment</strong> - Rich internal data vs. private external sharing</li>
-            </ol>
+                         <h4>🔄 Demo Steps:</h4>
+             <ol style="line-height: 1.6;">
+                 <li><strong>Start in CoinFlex view</strong> - You're onboarding a new user</li>
+                 <li><strong>Enter a test email</strong> and click "Check User with Sunscreen"</li>
+                 <li><strong>See minimal shared data</strong> - Only risk tags, quarter, match field</li>
+                 <li><strong>Click "Show Technical Details"</strong> to see what CoinFlex actually receives</li>
+                 <li><strong>Toggle to Maple CEX view</strong> to see the partner's rich internal database</li>
+                 <li><strong>Notice the "aha!" moment</strong> - Internal details never shared with querying party</li>
+             </ol>
         </div>
 
         <!-- Test Results (Development Only) -->

@@ -354,8 +354,8 @@ class CryptographicProofSystem {
                 match_found: true,
                 risk_tags: riskData.risk_tags,
                 flagged_quarter: riskData.flagged_quarter, // Privacy-preserving date
-                status: riskData.status,
-                recommendation: this.generateRecommendation(riskData.status, riskData.risk_tags)
+                match_field: "email_hash" // What field was matched
+                // NOTE: No status or recommendation from Maple CEX - they only provide raw risk data
             },
             compliance: {
                 query_id: `QUERY-${Date.now()}`,
@@ -366,12 +366,25 @@ class CryptographicProofSystem {
             signature: ""
         };
 
-        // Generate cryptographic signature
+        // Generate cryptographic signature of Maple CEX's raw data response
         const signatureContent = `${proofObject.provider}${proofObject.timestamp}${proofObject.query_hash}${JSON.stringify(proofObject.result)}`;
         proofObject.signature = await sha256(signatureContent);
 
+        // Now Sunscreen processes the raw data and adds its own recommendation
+        const sunscreenRecommendation = this.generateSunscreenRecommendation(riskData.status, riskData.risk_tags);
+        
+        // Final proof receipt includes both Maple CEX data + Sunscreen's analysis
+        const finalProofReceipt = {
+            ...proofObject,
+            sunscreen_analysis: {
+                recommendation: sunscreenRecommendation,
+                risk_level: this.calculateRiskLevel(riskData.risk_tags),
+                compliance_guidance: "Review recommended based on partner data"
+            }
+        };
+
         // For demo purposes, also return internal data for the "aha!" moment
-        proofObject._internal_demo_data = {
+        finalProofReceipt._internal_demo_data = {
             original_email: originalEmail,
             exact_flagged_date: riskData.exact_flagged_date,
             investigation_notes: riskData.investigation_notes,
@@ -380,35 +393,53 @@ class CryptographicProofSystem {
             wallet_addresses: riskData.wallet_addresses
         };
 
-        return proofObject;
+        return finalProofReceipt;
     }
 
     // Generate receipt for clean users (no match)
-    generateNoMatchReceipt(queryHash, originalEmail) {
+    async generateNoMatchReceipt(queryHash, originalEmail) {
         const timestamp = new Date().toISOString();
         
-        return {
+        const baseReceipt = {
             provider: "MapleCEX", 
             query_hash: queryHash,
             timestamp: timestamp,
             result: {
                 match_found: false,
-                recommendation: "APPROVE - No risk flags detected in partner network"
+                match_field: "email_hash"
             },
             compliance: {
                 query_id: `QUERY-${Date.now()}`,
                 auditable: true,
                 regulation_compliance: ["BSA", "KYC", "OFAC"]
+            }
+        };
+        
+        // Generate signature for no-match response
+        const signatureContent = `${baseReceipt.provider}${baseReceipt.timestamp}${baseReceipt.query_hash}${JSON.stringify(baseReceipt.result)}`;
+        baseReceipt.signature = await sha256(signatureContent);
+        
+        // Sunscreen adds its analysis for no-match cases
+        const finalReceipt = {
+            ...baseReceipt,
+            sunscreen_analysis: {
+                recommendation: "APPROVE - No risk flags detected in partner network",
+                risk_level: "CLEAN",
+                compliance_guidance: "No risk indicators found - proceed with standard onboarding"
             },
             _internal_demo_data: {
                 original_email: originalEmail,
-                note: "This user is not in Maple CEX's risk database"
+                note: "This user is not in Maple CEX's risk database",
+                total_records_checked: Object.keys(mapleCEX_HashDatabase).length
             }
         };
+        
+        return finalReceipt;
     }
 
     // Generate compliance recommendations
-    generateRecommendation(status, riskTags) {
+    // Sunscreen's recommendation logic (not Maple CEX's)
+    generateSunscreenRecommendation(status, riskTags) {
         if (status === 'BLOCKED' || riskTags.includes('Sanctions_List_Hit')) {
             return "REJECT - Extreme compliance risk detected";
         } else if (status === 'BANNED' || riskTags.includes('Velocity_Withdrawals')) {
@@ -416,6 +447,14 @@ class CryptographicProofSystem {
         } else {
             return "MANUAL_REVIEW - Moderate risk flags detected";
         }
+    }
+    
+    // Calculate risk level based on tags (Sunscreen's analysis)
+    calculateRiskLevel(riskTags) {
+        if (riskTags.includes('Sanctions_List_Hit')) return 'EXTREME';
+        if (riskTags.includes('High_Velocity_Withdrawals') || riskTags.includes('Velocity_Withdrawals')) return 'HIGH';
+        if (riskTags.includes('Flagged_KYC')) return 'MODERATE';
+        return 'LOW';
     }
 }
 
@@ -549,18 +588,19 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
                     <h4>🟢 Query Complete - User Clear</h4>
                     <p><strong>Email:</strong> ${userEmail}</p>
                     <p><strong>Result:</strong> No risk flags found across partner network</p>
-                    <p><strong>Recommendation:</strong> ✅ ${proofReceipt.result.recommendation}</p>
+                    <p><strong>Sunscreen Recommendation:</strong> ✅ ${proofReceipt.sunscreen_analysis.recommendation}</p>
                     <div style="margin-top: 0.75rem; padding: 0.5rem; background: #d4edda; border-radius: 4px; font-size: 0.9rem;">
                         <strong>🔐 Privacy Protected:</strong> Query processed without revealing user identity to partners
                     </div>
                 </div>
             `;
         } else {
-            // Determine risk level and color based on recommendation
-            const isExtreme = proofReceipt.result.recommendation.includes('REJECT') && proofReceipt.result.recommendation.includes('Extreme');
-            const isHigh = proofReceipt.result.recommendation.includes('REJECT');
+                         // Determine risk level and color based on Sunscreen's analysis
+            const riskLevel = proofReceipt.sunscreen_analysis.risk_level;
+            const isExtreme = riskLevel === 'EXTREME';
+            const isHigh = riskLevel === 'HIGH';
             
-            const riskLevel = isExtreme ? 'EXTREME' : isHigh ? 'HIGH' : 'MODERATE';
+            // Risk level already determined by Sunscreen
             const riskColor = isExtreme ? '#dc3545' : isHigh ? '#fd7e14' : '#ffc107';
             
             responseHTML = `
@@ -575,7 +615,8 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
                         ${proofReceipt.result.risk_tags.map(flag => `<span style="background: #dc3545; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8rem; margin: 2px;">${flag}</span>`).join('')}
                     </div>
                     
-                    <p><strong>Recommendation:</strong> ${proofReceipt.result.recommendation}</p>
+                    <p><strong>Sunscreen Recommendation:</strong> ${proofReceipt.sunscreen_analysis.recommendation}</p>
+                    <p><strong>Risk Level:</strong> <span style="background: ${riskColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;">${proofReceipt.sunscreen_analysis.risk_level}</span></p>
 
                     <div style="margin-top: 0.75rem; padding: 0.5rem; background: #fff3cd; border-radius: 4px; font-size: 0.9rem;">
                         <strong>🔐 Privacy Protected:</strong> Partner never learned you were investigating this user
@@ -633,10 +674,11 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
             queryHash: proofReceipt.query_hash,
             matchFound: proofReceipt.result.match_found,
             sharedData: proofReceipt.result.match_found ? {
-                risk_tags: proofReceipt.result.risk_tags,
-                flagged_quarter: proofReceipt.result.flagged_quarter,
-                match_field: proofReceipt.result.match_field,
-                recommendation: proofReceipt.result.recommendation
+                                 risk_tags: proofReceipt.result.risk_tags,
+                 flagged_quarter: proofReceipt.result.flagged_quarter,
+                 match_field: proofReceipt.result.match_field,
+                 sunscreen_recommendation: proofReceipt.sunscreen_analysis.recommendation,
+                 risk_level: proofReceipt.sunscreen_analysis.risk_level
             } : null,
             // For demo purposes only - in reality this wouldn't be logged
             _demo_email: userEmail

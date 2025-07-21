@@ -379,6 +379,139 @@ input:checked ~ .view-label:last-child {
     border-radius: 4px;
 }
 
+/* ===== QUERY DASHBOARD SECTION ===== */
+.query-dashboard-section {
+    background: white;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(111, 66, 193, 0.3);
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.query-log-section h4 {
+    margin-bottom: 1rem;
+    color: #495057;
+}
+
+.query-log-display {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.no-queries {
+    padding: 2rem;
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.query-entry {
+    border-bottom: 1px solid #dee2e6;
+    padding: 1rem;
+    background: white;
+    margin-bottom: 1px;
+}
+
+.query-entry:last-child {
+    border-bottom: none;
+}
+
+.query-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.query-id {
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 0.85rem;
+    color: #6f42c1;
+    font-weight: bold;
+}
+
+.query-timestamp {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.query-result {
+    margin-bottom: 0.5rem;
+}
+
+.match-indicator {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.match-found {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.no-match {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.shared-data {
+    background: #f8f9fa;
+    padding: 0.75rem;
+    border-radius: 4px;
+    border-left: 3px solid #6f42c1;
+}
+
+.shared-data h5 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    color: #6f42c1;
+}
+
+.data-point {
+    display: inline-block;
+    background: #e83e8c;
+    color: white;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    margin: 0.1rem 0.2rem;
+}
+
 .database-section h3 {
     font-size: 1.1rem;
     margin-bottom: 1rem;

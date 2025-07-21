@@ -83,8 +83,36 @@
                         <p><strong>Privacy Protection:</strong> Partners query your data without seeing raw details or knowing who they're investigating.</p>
                     </div>
                     
+                    <!-- Query Audit Dashboard -->
+                    <div class="query-dashboard-section">
+                        <h3>📊 Query Audit Dashboard</h3>
+                        <div class="dashboard-stats">
+                            <div class="stat-card">
+                                <div class="stat-number" id="totalQueries">0</div>
+                                <div class="stat-label">Total Queries</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number" id="totalMatches">0</div>
+                                <div class="stat-label">Matches Found</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number" id="dataSharedCount">0</div>
+                                <div class="stat-label">Data Points Shared</div>
+                            </div>
+                        </div>
+                        
+                        <div class="query-log-section">
+                            <h4>🔍 Recent Query Log</h4>
+                            <div id="queryLogDisplay" class="query-log-display">
+                                <div class="no-queries">
+                                    <p>No queries yet. Switch to CoinFlex view and try a search!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="database-section">
-                        <h3>Your Risk Database:</h3>
+                        <h3>Your Internal Risk Database:</h3>
                         <div id="partnerDataDisplay" class="partner-data-display">
                             <!-- Partner data will be shown here -->
                         </div>

@@ -421,6 +421,9 @@ class CryptographicProofSystem {
 
 const proofSystem = new CryptographicProofSystem();
 
+// Query audit log for Maple CEX dashboard
+const queryAuditLog = [];
+
 // Backwards compatibility functions
 async function performEnhancedRiskCheck(userEmail) {
     return await proofSystem.performRiskQuery(userEmail);
@@ -500,8 +503,14 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
             // Get cryptographic proof receipt from Sunscreen API
             const proofReceipt = await proofSystem.performRiskQuery(userEmail);
             
+            // Log the query for Maple CEX audit dashboard
+            logQueryForAudit(userEmail, proofReceipt);
+            
             // Display the proof receipt
             displayProofReceipt(userEmail, proofReceipt);
+            
+            // Update dashboard if in Maple CEX view
+            updateQueryDashboard();
         } catch (error) {
             console.error('Query failed:', error);
             showError('Query failed. Please try again.');
@@ -614,6 +623,99 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
         `;
         
         technicalContent.innerHTML = technicalHTML;
+    }
+    
+    // Log queries for Maple CEX audit dashboard
+    function logQueryForAudit(userEmail, proofReceipt) {
+        const queryEntry = {
+            id: proofReceipt.compliance.query_id,
+            timestamp: proofReceipt.timestamp,
+            queryHash: proofReceipt.query_hash,
+            matchFound: proofReceipt.result.match_found,
+            sharedData: proofReceipt.result.match_found ? {
+                risk_tags: proofReceipt.result.risk_tags,
+                flagged_quarter: proofReceipt.result.flagged_quarter,
+                match_field: proofReceipt.result.match_field,
+                recommendation: proofReceipt.result.recommendation
+            } : null,
+            // For demo purposes only - in reality this wouldn't be logged
+            _demo_email: userEmail
+        };
+        
+        queryAuditLog.unshift(queryEntry); // Add to beginning
+        
+        // Keep only last 10 queries for demo
+        if (queryAuditLog.length > 10) {
+            queryAuditLog.pop();
+        }
+    }
+    
+    // Update the query dashboard statistics and log
+    function updateQueryDashboard() {
+        const totalQueries = queryAuditLog.length;
+        const totalMatches = queryAuditLog.filter(q => q.matchFound).length;
+        const dataSharedCount = queryAuditLog.reduce((count, q) => {
+            if (!q.matchFound) return count;
+            return count + Object.keys(q.sharedData).length;
+        }, 0);
+        
+        // Update stats
+        document.getElementById('totalQueries').textContent = totalQueries;
+        document.getElementById('totalMatches').textContent = totalMatches;
+        document.getElementById('dataSharedCount').textContent = dataSharedCount;
+        
+        // Update query log display
+        const queryLogDisplay = document.getElementById('queryLogDisplay');
+        
+        if (queryAuditLog.length === 0) {
+            queryLogDisplay.innerHTML = `
+                <div class="no-queries">
+                    <p>No queries yet. Switch to CoinFlex view and try a search!</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const logHTML = queryAuditLog.map(query => {
+            const formattedTime = new Date(query.timestamp).toLocaleTimeString();
+            const matchClass = query.matchFound ? 'match-found' : 'no-match';
+            const matchText = query.matchFound ? 'MATCH FOUND' : 'NO MATCH';
+            
+            let sharedDataHTML = '';
+            if (query.matchFound) {
+                const dataPoints = Object.entries(query.sharedData).map(([key, value]) => {
+                    if (key === 'risk_tags' && Array.isArray(value)) {
+                        return value.map(tag => `<span class="data-point">${tag}</span>`).join('');
+                    }
+                    return `<span class="data-point">${key}: ${value}</span>`;
+                }).join('');
+                
+                sharedDataHTML = `
+                    <div class="shared-data">
+                        <h5>📤 Data Shared with Querying Exchange:</h5>
+                        ${dataPoints}
+                    </div>
+                `;
+            }
+            
+            return `
+                <div class="query-entry">
+                    <div class="query-header">
+                        <span class="query-id">${query.id}</span>
+                        <span class="query-timestamp">${formattedTime}</span>
+                    </div>
+                    <div class="query-result">
+                        <span class="match-indicator ${matchClass}">${matchText}</span>
+                        <span style="margin-left: 1rem; font-size: 0.9rem; color: #6c757d;">
+                            Hash: ${query.queryHash.substring(0, 16)}...
+                        </span>
+                    </div>
+                    ${sharedDataHTML}
+                </div>
+            `;
+        }).join('');
+        
+        queryLogDisplay.innerHTML = logHTML;
     }
 
     function showError(message) {
@@ -733,6 +835,9 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
 
         // Initialize partner data display (always visible in Maple CEX view)
         displayPartnerData();
+        
+        // Initialize dashboard
+        updateQueryDashboard();
 
         console.log('✅ UI initialized successfully');
         

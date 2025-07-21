@@ -13,56 +13,87 @@
     </header>
 
     <main class="demo-container">
-        <!-- Two-Column Layout: CoinFlex (You) | Sunscreen API | Maple CEX (Partner) -->
-        <div class="layout-wrapper">
-            <!-- Left Column: CoinFlex (You) -->
-            <div class="exchange-column left-column">
-                <h2>CoinFlex (You)</h2>
-                <div class="input-section">
-                    <label for="userInput">Enter User Email to Check:</label>
-                    <input type="email" id="userInput" placeholder="e.g., alex.chen@gmail.com" />
-                    <button id="checkButton">Check User with Sunscreen</button>
-                </div>
-                <div class="results-section">
-                    <h3>Query Results:</h3>
-                    <div id="resultsPanel" class="results-panel">
-                        <p class="placeholder">No queries yet. Enter a User ID above.</p>
-                    </div>
-                </div>
+        <!-- View Selector -->
+        <div class="view-selector">
+            <h2>Demo Perspective:</h2>
+            <div class="view-buttons">
+                <button id="coinflexViewBtn" class="view-btn active">CoinFlex (Querying Exchange)</button>
+                <button id="mapleCEXViewBtn" class="view-btn">Maple CEX (Partner Exchange)</button>
             </div>
+            <p class="view-description">
+                <span id="viewDescription">You are CoinFlex onboarding a new user. Check if they're flagged by partner exchanges.</span>
+            </p>
+        </div>
 
-            <!-- Center: Sunscreen API Visual -->
-            <div class="api-column">
-                <div id="sunscreenAPI" class="api-box">
-                    <h3>Sunscreen API</h3>
-                    <div class="api-content">
-                        <div class="api-icon">🔒</div>
-                        <p>Private Data<br/>Coordination</p>
+        <!-- CoinFlex View -->
+        <div id="coinflexView" class="exchange-view active">
+            <div class="layout-wrapper">
+                <!-- Input Section -->
+                <div class="exchange-column main-column">
+                    <h2>🏦 CoinFlex - User Onboarding</h2>
+                    <div class="input-section">
+                        <label for="userInput">Enter User Email to Check:</label>
+                        <input type="email" id="userInput" placeholder="e.g., alex.chen@gmail.com or fraud-user-1@email.com" />
+                        <button id="checkButton">Check User with Sunscreen</button>
                     </div>
-                    <div id="apiStatus" class="api-status">Ready</div>
-                </div>
-            </div>
-
-            <!-- Right Column: Maple CEX (Partner) -->
-            <div class="exchange-column right-column">
-                <h2>Maple CEX (Partner)</h2>
-                <div class="partner-controls">
-                    <label class="toggle-container">
-                        <input type="checkbox" id="revealToggle">
-                        <span class="toggle-slider"></span>
-                        Show Partner's Internal Data
-                    </label>
-                </div>
-                <div class="partner-section">
-                    <h3>Partner Database:</h3>
-                    <div id="partnerDataPanel" class="partner-data-panel hidden">
-                        <p class="data-note">🔍 Maple CEX's Internal Risk Database</p>
-                        <div id="partnerDataDisplay" class="partner-data-display">
-                            <!-- Partner data will be shown here when toggle is on -->
+                    <div class="results-section">
+                        <h3>Sunscreen Query Results:</h3>
+                        <div id="resultsPanel" class="results-panel">
+                            <p class="placeholder">No queries yet. Enter a user email above to check against partner network.</p>
+                        </div>
+                        
+                        <!-- Expandable Technical Details -->
+                        <div class="technical-details">
+                            <button id="showTechnicalBtn" class="technical-toggle-btn">🔧 Show Technical Details</button>
+                            <div id="technicalPanel" class="technical-panel hidden">
+                                <h4>Cryptographic Details:</h4>
+                                <div id="technicalContent" class="technical-content">
+                                    <p>Technical details will appear here after a query...</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- API Visual -->
+                <div class="api-column">
+                    <div id="sunscreenAPI" class="api-box">
+                        <h3>Sunscreen API</h3>
+                        <div class="api-content">
+                            <div class="api-icon">🔒</div>
+                            <p>Private Data<br/>Coordination</p>
+                        </div>
+                        <div id="apiStatus" class="api-status">Ready</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Maple CEX View -->
+        <div id="mapleCEXView" class="exchange-view hidden">
+            <div class="layout-wrapper">
+                <div class="exchange-column main-column">
+                    <h2>🏛️ Maple CEX - Internal Risk Database</h2>
+                    <div class="partner-info">
+                        <p><strong>Your Role:</strong> You are Maple CEX. Your risk data helps other exchanges detect bad actors.</p>
+                        <p><strong>Privacy Protection:</strong> Partners query your data without seeing raw details or knowing who they're investigating.</p>
+                    </div>
+                    
+                    <div class="database-section">
+                        <h3>Your Risk Database:</h3>
+                        <div id="partnerDataDisplay" class="partner-data-display">
+                            <!-- Partner data will be shown here -->
+                        </div>
+                    </div>
+                    
                     <div class="privacy-notice">
-                        <p>🔐 This data remains private and is never directly shared</p>
+                        <h4>🔐 Privacy Guarantee:</h4>
+                        <p>When CoinFlex queries through Sunscreen:</p>
+                        <ul>
+                            <li>You never see who they're investigating</li>
+                            <li>They only learn risk flags and quarterly dates</li>
+                            <li>Your detailed internal data stays private</li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -70,29 +101,47 @@
 
         <!-- Demo Instructions -->
         <div class="demo-instructions">
-            <h3>🎯 Try the Demo - Realistic Scenarios:</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-                <div style="background: #f8d7da; padding: 1rem; border-radius: 6px; border-left: 4px solid #dc3545;">
-                    <strong>🚨 High Risk User:</strong><br/>
-                    <code>alex.chen@gmail.com</code><br/>
-                    <small>Banned Q4 2023 - Velocity withdrawals</small>
+            <h3>🎯 How to Use This Demo:</h3>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                <div style="background: #e7f3ff; padding: 1rem; border-radius: 6px; border-left: 4px solid #0066cc;">
+                    <strong>👤 CoinFlex View (Default):</strong><br/>
+                    <small>Experience being an exchange checking a new user against partner networks</small>
                 </div>
-                <div style="background: #fff3cd; padding: 1rem; border-radius: 6px; border-left: 4px solid #ffc107;">
-                    <strong>⚠️ Extreme Risk User:</strong><br/>
-                    <code>crypto.trader2024@protonmail.com</code><br/>
-                    <small>Blocked Q4 2023 - OFAC sanctions hit</small>
-                </div>
-                <div style="background: #d4edda; padding: 1rem; border-radius: 6px; border-left: 4px solid #28a745;">
-                    <strong>✅ Clean User:</strong><br/>
-                    <code>maria.rodriguez@yahoo.com</code><br/>
-                    <small>No risk flags found</small>
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 6px; border-left: 4px solid #6c757d;">
+                    <strong>🏛️ Maple CEX View:</strong><br/>
+                    <small>See the partner exchange perspective and their internal risk database</small>
                 </div>
             </div>
-            <ol>
-                <li>Copy one of the email addresses above into the input field</li>
-                <li>Click "Check User with Sunscreen" and watch the privacy-preserving coordination</li>
-                <li>Toggle "Show Partner's Internal Data" to see the detailed risk database</li>
-                <li>Notice how CoinFlex gets the answer without seeing the partner's raw data!</li>
+
+            <h4>📧 Test Email Addresses:</h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem;">
+                <div style="background: #f8d7da; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #dc3545;">
+                    <code style="font-weight: bold;">alex.chen@gmail.com</code><br/>
+                    <small>High risk - Velocity withdrawals</small>
+                </div>
+                <div style="background: #fff3cd; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #ffc107;">
+                    <code style="font-weight: bold;">sanctioned-user@email.com</code><br/>
+                    <small>Extreme risk - OFAC sanctions</small>
+                </div>
+                <div style="background: #e7f3ff; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #0066cc;">
+                    <code style="font-weight: bold;">fraud-user-1@email.com</code><br/>
+                    <small>Under review - High velocity</small>
+                </div>
+                <div style="background: #d4edda; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #28a745;">
+                    <code style="font-weight: bold;">clean-user@example.com</code><br/>
+                    <small>Clean user - No flags</small>
+                </div>
+            </div>
+
+            <h4>🔄 Demo Steps:</h4>
+            <ol style="line-height: 1.6;">
+                <li><strong>Start in CoinFlex view</strong> - You're onboarding a new user</li>
+                <li><strong>Enter a test email</strong> and click "Check User with Sunscreen"</li>
+                <li><strong>See the clean result</strong> - No technical details, just the decision</li>
+                <li><strong>Click "Show Technical Details"</strong> to see SHA-256 hashing and proof receipts</li>
+                <li><strong>Switch to Maple CEX view</strong> to see the partner's perspective</li>
+                <li><strong>Notice the "aha!" moment</strong> - Rich internal data vs. private external sharing</li>
             </ol>
         </div>
 

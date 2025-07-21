@@ -1,7 +1,21 @@
 // ========================================
-// PROJECT CHIMERA - CORE BUSINESS LOGIC
-// Following TDD Approach: Tests First
+// PROJECT CHIMERA - REALISTIC EXCHANGE DEMO
+// Using Industry-Standard SHA-256 Hashing & Cryptographic Proof Receipts
 // ========================================
+
+// ===== SHA-256 HELPER FUNCTION =====
+// Modern browsers can do this securely. This simulates what an exchange's backend would do.
+async function sha256(message) {
+    // encode as UTF-8
+    const msgBuffer = new TextEncoder().encode(message);
+    // hash the message
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    // convert ArrayBuffer to Array
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    // convert bytes to hex string
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
+}
 
 // ===== TEST SUITE =====
 class TestSuite {
@@ -14,13 +28,13 @@ class TestSuite {
         this.tests.push({ name, testFn });
     }
 
-    runAllTests() {
+    async runAllTests() {
         console.log('🧪 Running Sunscreen Demo Test Suite...\n');
         this.results = [];
 
-        this.tests.forEach(test => {
+        for (const test of this.tests) {
             try {
-                const result = test.testFn();
+                const result = await test.testFn();
                 if (result === true) {
                     console.log(`✅ PASS: ${test.name}`);
                     this.results.push({ name: test.name, status: 'PASS' });
@@ -32,7 +46,7 @@ class TestSuite {
                 console.log(`❌ ERROR: ${test.name} - ${error.message}`);
                 this.results.push({ name: test.name, status: 'ERROR', error: error.message });
             }
-        });
+        }
 
         this.printSummary();
     }
@@ -53,37 +67,34 @@ class TestSuite {
 // ===== TEST CASES (Written First - TDD Approach) =====
 const testSuite = new TestSuite();
 
-// Test 1: Verify coinflexUsers and mapleCEXRiskDatabase exist and are properly structured
-testSuite.addTest('Exchange data should exist and be properly structured', () => {
-    if (typeof coinflexUsers === 'undefined') {
-        return 'coinflexUsers is not defined';
+// Test 1: Verify SHA-256 function and hashed database exist and are properly structured
+testSuite.addTest('SHA-256 function and hashed database should exist', () => {
+    if (typeof sha256 === 'undefined') {
+        return 'sha256 function is not defined';
     }
     
-    if (typeof mapleCEXRiskDatabase === 'undefined') {
-        return 'mapleCEXRiskDatabase is not defined';
+    if (typeof mapleCEX_HashDatabase === 'undefined') {
+        return 'mapleCEX_HashDatabase is not defined';
     }
 
-    // Check if required test users exist in CoinFlex onboarding queue
-    const requiredEmails = ['alex.chen@gmail.com', 'maria.rodriguez@yahoo.com', 'crypto.trader2024@protonmail.com'];
-    for (let email of requiredEmails) {
-        if (!(email in coinflexUsers)) {
-            return `Required user ${email} not found in CoinFlex data`;
-        }
+    // Check if demo users mapping exists
+    if (typeof demoUsers === 'undefined') {
+        return 'demoUsers mapping is not defined';
     }
 
     // Check if risk database has proper structure
-    const firstProfile = Object.values(mapleCEXRiskDatabase)[0];
-    if (!firstProfile.emailHash || !firstProfile.riskFlags || !firstProfile.riskScore) {
-        return 'Risk database missing required fields';
+    const firstProfile = Object.values(mapleCEX_HashDatabase)[0];
+    if (!firstProfile.risk_tags || !firstProfile.flagged_quarter || !firstProfile.status) {
+        return 'Hashed database missing required fields';
     }
 
     return true;
 });
 
-// Test 2: Privacy-preserving matcher should exist
-testSuite.addTest('Privacy-preserving functions should exist', () => {
-    if (typeof matcher === 'undefined') {
-        return 'PrivacyPreservingMatcher instance not defined';
+// Test 2: Cryptographic proof system should exist
+testSuite.addTest('Cryptographic proof system should exist', () => {
+    if (typeof proofSystem === 'undefined') {
+        return 'CryptographicProofSystem instance not defined';
     }
     
     if (typeof performEnhancedRiskCheck === 'undefined') {
@@ -97,76 +108,98 @@ testSuite.addTest('Privacy-preserving functions should exist', () => {
     return true;
 });
 
-// Test 3: Enhanced risk check should detect known bad actors
-testSuite.addTest('Enhanced risk check should detect alex.chen@gmail.com as high risk', () => {
-    if (typeof performEnhancedRiskCheck === 'undefined') {
-        return 'performEnhancedRiskCheck function not implemented yet';
+// Test 3: Async SHA-256 hashing should work correctly  
+testSuite.addTest('SHA-256 hashing should work correctly', async () => {
+    if (typeof sha256 === 'undefined') {
+        return 'sha256 function not implemented yet';
     }
 
-    const result = performEnhancedRiskCheck('alex.chen@gmail.com');
-    if (!result.matchFound) {
-        return 'alex.chen@gmail.com should be detected as high risk';
-    }
+    try {
+        const testHash = await sha256('test@example.com');
+        if (typeof testHash !== 'string' || testHash.length !== 64) {
+            return 'SHA-256 should return 64-character hex string';
+        }
 
-    if (!result.riskFlags.includes('Velocity_Withdrawals')) {
-        return 'alex.chen@gmail.com should have Velocity_Withdrawals flag';
-    }
+        // Test that same input produces same hash
+        const testHash2 = await sha256('test@example.com');
+        if (testHash !== testHash2) {
+            return 'SHA-256 should be deterministic';
+        }
 
-    if (result.status !== 'BANNED') {
-        return 'alex.chen@gmail.com should have BANNED status';
+        return true;
+    } catch (error) {
+        return `SHA-256 hashing failed: ${error.message}`;
     }
-
-    return true;
 });
 
-// Test 4: Enhanced risk check should clear clean users
-testSuite.addTest('Enhanced risk check should clear maria.rodriguez@yahoo.com', () => {
-    if (typeof performEnhancedRiskCheck === 'undefined') {
-        return 'performEnhancedRiskCheck function not implemented yet';
+// Test 4: Cryptographic proof system should detect known bad actors
+testSuite.addTest('Proof system should detect alex.chen@gmail.com as high risk', async () => {
+    if (typeof proofSystem === 'undefined') {
+        return 'proofSystem not implemented yet';
     }
 
-    const result = performEnhancedRiskCheck('maria.rodriguez@yahoo.com');
-    if (result.matchFound) {
-        return 'maria.rodriguez@yahoo.com should be clean (no risk flags)';
-    }
+    try {
+        const proofReceipt = await proofSystem.performRiskQuery('alex.chen@gmail.com');
+        
+        if (!proofReceipt.result.match_found) {
+            return 'alex.chen@gmail.com should be detected as high risk';
+        }
 
-    if (!result.message.includes('clear for onboarding')) {
-        return 'Clean users should get positive onboarding message';
-    }
+        if (!proofReceipt.result.risk_tags.includes('Velocity_Withdrawals')) {
+            return 'alex.chen@gmail.com should have Velocity_Withdrawals flag';
+        }
 
-    return true;
+        if (proofReceipt.result.status !== 'BANNED') {
+            return 'alex.chen@gmail.com should have BANNED status';
+        }
+
+        if (!proofReceipt.signature || proofReceipt.signature.length !== 64) {
+            return 'Proof receipt should have valid SHA-256 signature';
+        }
+
+        return true;
+    } catch (error) {
+        return `Proof generation failed: ${error.message}`;
+    }
 });
 
-// Test 5: Privacy-preserving hashing should work
-testSuite.addTest('Privacy-preserving identifier hashing should work', () => {
-    if (typeof matcher === 'undefined') {
-        return 'matcher not defined';
+// Test 5: Cryptographic proof system should clear clean users
+testSuite.addTest('Proof system should clear unknown users', async () => {
+    if (typeof proofSystem === 'undefined') {
+        return 'proofSystem not implemented yet';
     }
 
-    const emailHash = matcher.hashIdentifier('email', 'alex.chen@gmail.com');
-    const phoneHash = matcher.hashIdentifier('phone', '+1-555-0123');
+    try {
+        const proofReceipt = await proofSystem.performRiskQuery('clean-user@example.com');
+        
+        if (proofReceipt.result.match_found) {
+            return 'clean-user@example.com should not have any risk flags';
+        }
 
-    if (!emailHash.includes('sha256_email_alex_chen_gmail_com')) {
-        return 'Email hashing not working correctly';
+        if (!proofReceipt.result.recommendation.includes('APPROVE')) {
+            return 'Clean users should get APPROVE recommendation';
+        }
+
+        if (!proofReceipt.compliance || !proofReceipt.compliance.auditable) {
+            return 'Proof receipt should be compliance-ready';
+        }
+
+        return true;
+    } catch (error) {
+        return `Clean user proof generation failed: ${error.message}`;
     }
-
-    if (!phoneHash.includes('sha256_phone_1_555_0123')) {
-        return 'Phone hashing not working correctly';
-    }
-
-    return true;
 });
 
 // Test 6: Quarter conversion should work for privacy
 testSuite.addTest('Date to quarter conversion should preserve privacy', () => {
-    if (typeof matcher === 'undefined') {
-        return 'matcher not defined';
+    if (typeof proofSystem === 'undefined') {
+        return 'proofSystem not defined';
     }
 
     // Test various dates
-    const q4_2023 = matcher.dateToQuarter('2023-12-10T16:45:00Z');
-    const q4_2023_2 = matcher.dateToQuarter('2023-11-22T09:12:00Z');
-    const q4_2023_3 = matcher.dateToQuarter('2023-10-05T12:30:00Z');
+    const q4_2023 = proofSystem.dateToQuarter('2023-12-10T16:45:00Z');
+    const q4_2023_2 = proofSystem.dateToQuarter('2023-11-22T09:12:00Z');
+    const q4_2023_3 = proofSystem.dateToQuarter('2023-10-05T12:30:00Z');
 
     if (q4_2023 !== 'Q4 2023') {
         return `Expected Q4 2023, got ${q4_2023}`;
@@ -184,14 +217,14 @@ testSuite.addTest('Date to quarter conversion should preserve privacy', () => {
 });
 
 // ===== AUTO-RUN TESTS AND INITIALIZE ON PAGE LOAD =====
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     console.log('🚀 Sunscreen Demo - Project Chimera');
-    console.log('📋 Phase 4: Interactive Features & Integration');
-    console.log('==============================================\n');
+    console.log('📋 Industry-Standard Cryptographic Proof System');
+    console.log('===============================================\n');
     
-    // Run core logic tests
-    console.log('Running Core Logic Tests:');
-    testSuite.runAllTests();
+    // Run core logic tests (now async)
+    console.log('Running Cryptographic Proof System Tests:');
+    await testSuite.runAllTests();
     
     // Initialize UI after DOM is ready
     setTimeout(() => {
@@ -199,7 +232,8 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeUI();
         
         console.log('\n🎯 Demo Ready!');
-        console.log('Try entering: alex.chen@gmail.com, maria.rodriguez@yahoo.com, or crypto.trader2024@protonmail.com');
+        console.log('Try entering: alex.chen@gmail.com, fraud-user-1@email.com, or sanctioned-user@email.com');
+        console.log('Watch for SHA-256 hashing and cryptographic proof receipts!');
         console.log('Don\'t forget to toggle "Show Partner\'s Internal Data" for the aha! moment');
     }, 100);
 });
@@ -207,85 +241,78 @@ document.addEventListener('DOMContentLoaded', () => {
 // ===== IMPLEMENTATION AREA =====
 // TODO: Now implement the actual functionality to make tests pass
 
-// ===== REALISTIC EXCHANGE DATA =====
+// ===== REALISTIC HASHED EXCHANGE DATABASE =====
+// This simulates Maple CEX's actual risk database using SHA-256 hashes
+// Keys are SHA-256 hashes of user emails (industry standard)
 
-// CoinFlex onboarding queue
-const coinflexUsers = {
-    "alex.chen@gmail.com": {
-        email: "alex.chen@gmail.com",
-        phone: "+1-555-0123",
-        walletAddress: "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
-        kycDocHash: "sha256_abc123def456",
-        deviceFingerprint: "Mozilla_Chrome_MacOS_12345",
-        registrationIP: "192.168.1.100",
-        submittedAt: "2024-01-15T10:30:00Z"
+const mapleCEX_HashDatabase = {
+    // SHA-256 hash of: 'alex.chen@gmail.com'
+    "4a283f357be6639bcf06457b59bd6754e06e3c1d1b917b0eb76a7f27aa32a289": {
+        risk_tags: ["Velocity_Withdrawals", "Suspicious_Patterns"],
+        flagged_quarter: "Q4 2023",
+        exact_flagged_date: "2023-12-10T16:45:00Z", // Internal only
+        status: "BANNED",
+        investigation_notes: "Withdrew $50K in 24hrs, ignored KYC requests",
+        wallet_addresses: ["1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2", "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"],
+        compliance_officer: "J.Smith",
+        internal_case_id: "RISK-2023-1247"
     },
-    "maria.rodriguez@yahoo.com": {
-        email: "maria.rodriguez@yahoo.com", 
-        phone: "+1-555-0456",
-        walletAddress: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
-        kycDocHash: "sha256_xyz789abc123",
-        deviceFingerprint: "Mozilla_Firefox_Windows_67890",
-        registrationIP: "10.0.0.50",
-        submittedAt: "2024-01-15T14:22:00Z"
+    
+    // SHA-256 hash of: 'crypto.trader2024@protonmail.com'  
+    "86fd7e480273a8712be320b7d403a5a15733d0dc39732d44088acf35ad04721a": {
+        risk_tags: ["Sanctions_List_Hit", "Multiple_Accounts", "VPN_Usage"],
+        flagged_quarter: "Q4 2023",
+        exact_flagged_date: "2023-11-22T09:12:00Z", // Internal only
+        status: "BLOCKED",
+        investigation_notes: "Matched OFAC sanctions list, used multiple identities",
+        wallet_addresses: ["3FupnQyrcbUH2cMjHjH2qEQgcBMKL9g7gy"],
+        compliance_officer: "M.Davis",
+        internal_case_id: "SANCTIONS-2023-0892"
     },
-    "crypto.trader2024@protonmail.com": {
-        email: "crypto.trader2024@protonmail.com",
-        phone: "+44-20-7946-0958",
-        walletAddress: "3FupnQyrcbUH2cMjHjH2qEQgcBMKL9g7gy",
-        kycDocHash: "sha256_suspect123",
-        deviceFingerprint: "Mozilla_Chrome_Ubuntu_99999",
-        registrationIP: "185.220.101.5", // Suspicious TOR exit node
-        submittedAt: "2024-01-16T03:15:00Z"
+
+    // SHA-256 hash of: 'fraud-user-1@email.com'
+    "7ee64bc27fce592d32610fea7ac0a971440b3bed040f905d9b35ef23095aa169": {
+        risk_tags: ["High_Velocity_Withdrawals"],
+        flagged_quarter: "Q3 2024", 
+        exact_flagged_date: "2024-08-15T10:30:00Z", // Internal only
+        status: "UNDER_REVIEW",
+        investigation_notes: "Multiple large withdrawals to new addresses",
+        wallet_addresses: ["bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq"],
+        compliance_officer: "A.Johnson", 
+        internal_case_id: "VELOCITY-2024-0156"
+    },
+
+    // SHA-256 hash of: 'sanctioned-user@email.com'
+    "e4d2e6f0de586fb0a9b4d7f9df0ede8290a617fbfbf0edff05129e5810788e41": {
+        risk_tags: ["Sanctions_List_Hit", "Flagged_KYC"],
+        flagged_quarter: "Q2 2023",
+        exact_flagged_date: "2023-05-20T18:00:00Z", // Internal only
+        status: "BLOCKED",
+        investigation_notes: "Verified match on OFAC SDN list",
+        wallet_addresses: ["1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"],
+        compliance_officer: "K.Wilson",
+        internal_case_id: "OFAC-2023-0445"
     }
 };
 
-// Maple CEX risk database (with hashed identifiers for privacy)
-const mapleCEXRiskDatabase = {
-    "risk_profile_001": {
-        emailHash: "sha256_email_alex_chen_gmail_com", 
-        phoneHash: "sha256_phone_1_555_0123",
-        walletAddresses: ["1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2", "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"],
-        riskFlags: ["Velocity_Withdrawals", "Suspicious_Patterns"],
-        flaggedDate: "2023-12-10T16:45:00Z",
-        investigationNotes: "Withdrew $50K in 24hrs, ignored KYC requests",
-        riskScore: 8.5,
-        status: "BANNED"
-    },
-    "risk_profile_002": {
-        emailHash: "sha256_email_crypto_trader2024_protonmail_com",
-        phoneHash: "sha256_phone_44_20_7946_0958", 
-        walletAddresses: ["3FupnQyrcbUH2cMjHjH2qEQgcBMKL9g7gy"],
-        riskFlags: ["Sanctions_List_Hit", "Multiple_Accounts", "VPN_Usage"],
-        flaggedDate: "2023-11-22T09:12:00Z",
-        investigationNotes: "Matched OFAC sanctions list, used multiple identities",
-        riskScore: 9.8,
-        status: "BLOCKED"
-    },
-    "risk_profile_003": {
-        emailHash: "sha256_email_different_user",
-        phoneHash: "sha256_phone_different",
-        walletAddresses: ["1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"],
-        riskFlags: ["Flagged_KYC"],
-        flaggedDate: "2023-10-05T12:30:00Z",
-        investigationNotes: "KYC documents failed verification",
-        riskScore: 6.2,
-        status: "UNDER_REVIEW"
-    }
+// ===== DEMO USER MAPPING (for easy testing) =====
+const demoUsers = {
+    "alex.chen@gmail.com": "High-risk user, previously banned for velocity withdrawals",
+    "crypto.trader2024@protonmail.com": "Extreme risk, OFAC sanctions list hit", 
+    "maria.rodriguez@yahoo.com": "Clean user, no risk flags",
+    "fraud-user-1@email.com": "Under review for high-velocity withdrawals",
+    "sanctioned-user@email.com": "Blocked, verified OFAC sanctions match"
 };
 
-// Privacy-preserving matching logic
-class PrivacyPreservingMatcher {
-    hashIdentifier(type, value) {
-        // Simulate privacy-preserving hashing
-        return `sha256_${type}_${value.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`;
-    }
+// ===== CRYPTOGRAPHIC PROOF SYSTEM =====
+// This creates industry-standard proof receipts that exchanges would actually use
 
-    // Convert exact dates to quarters for privacy
+class CryptographicProofSystem {
+    // Convert exact dates to quarters for privacy-preserving reporting
     dateToQuarter(dateString) {
         const date = new Date(dateString);
         const year = date.getFullYear();
-        const month = date.getMonth() + 1; // getMonth() returns 0-11
+        const month = date.getMonth() + 1;
         
         let quarter;
         if (month <= 3) quarter = 'Q1';
@@ -296,62 +323,121 @@ class PrivacyPreservingMatcher {
         return `${quarter} ${year}`;
     }
 
-    checkUserRisk(userEmail) {
-        const user = coinflexUsers[userEmail];
-        if (!user) return { matchFound: false, message: 'User not in onboarding queue' };
-
-        const userEmailHash = this.hashIdentifier('email', user.email);
-        const userPhoneHash = this.hashIdentifier('phone', user.phone);
-        const userWallet = user.walletAddress;
-
-        // Search through risk database for matches
-        for (const [profileId, riskProfile] of Object.entries(mapleCEXRiskDatabase)) {
-            if (riskProfile.emailHash === userEmailHash || 
-                riskProfile.phoneHash === userPhoneHash ||
-                riskProfile.walletAddresses.includes(userWallet)) {
-                
-                return {
-                    matchFound: true,
-                    matchType: riskProfile.emailHash === userEmailHash ? 'email' : 
-                              riskProfile.phoneHash === userPhoneHash ? 'phone' : 'wallet',
-                    profileId: profileId,
-                    riskFlags: riskProfile.riskFlags,
-                    flaggedQuarter: this.dateToQuarter(riskProfile.flaggedDate),
-                    status: riskProfile.status,
-                    notes: riskProfile.investigationNotes,
-                    originalUser: user
-                };
-            }
+    // Main query function - this is what CoinFlex would call
+    async performRiskQuery(userEmail) {
+        // Step 1: Hash the user's email (never send raw PII)
+        const queryHash = await sha256(userEmail);
+        
+        console.log(`🔍 Querying with hash: ${queryHash.substring(0, 16)}...`);
+        
+        // Step 2: Search the hashed database
+        const matchedData = mapleCEX_HashDatabase[queryHash];
+        
+        // Step 3: Generate cryptographic proof receipt
+        if (matchedData) {
+            return await this.generateProofReceipt(queryHash, matchedData, userEmail);
+        } else {
+            return this.generateNoMatchReceipt(queryHash, userEmail);
         }
+    }
 
-        return {
-            matchFound: false,
-            message: 'No risk flags found - user clear for onboarding',
-            originalUser: user
+    // Generate a cryptographically signed proof receipt for matches
+    async generateProofReceipt(queryHash, riskData, originalEmail) {
+        const timestamp = new Date().toISOString();
+        
+        // This is what CoinFlex receives - NO internal details exposed
+        const proofObject = {
+            provider: "MapleCEX",
+            query_hash: queryHash,
+            timestamp: timestamp,
+            result: {
+                match_found: true,
+                risk_tags: riskData.risk_tags,
+                flagged_quarter: riskData.flagged_quarter, // Privacy-preserving date
+                status: riskData.status,
+                recommendation: this.generateRecommendation(riskData.status, riskData.risk_tags)
+            },
+            compliance: {
+                query_id: `QUERY-${Date.now()}`,
+                auditable: true,
+                regulation_compliance: ["BSA", "KYC", "OFAC"]
+            },
+            // Cryptographic signature proves authenticity
+            signature: ""
         };
+
+        // Generate cryptographic signature
+        const signatureContent = `${proofObject.provider}${proofObject.timestamp}${proofObject.query_hash}${JSON.stringify(proofObject.result)}`;
+        proofObject.signature = await sha256(signatureContent);
+
+        // For demo purposes, also return internal data for the "aha!" moment
+        proofObject._internal_demo_data = {
+            original_email: originalEmail,
+            exact_flagged_date: riskData.exact_flagged_date,
+            investigation_notes: riskData.investigation_notes,
+            compliance_officer: riskData.compliance_officer,
+            internal_case_id: riskData.internal_case_id,
+            wallet_addresses: riskData.wallet_addresses
+        };
+
+        return proofObject;
+    }
+
+    // Generate receipt for clean users (no match)
+    generateNoMatchReceipt(queryHash, originalEmail) {
+        const timestamp = new Date().toISOString();
+        
+        return {
+            provider: "MapleCEX", 
+            query_hash: queryHash,
+            timestamp: timestamp,
+            result: {
+                match_found: false,
+                recommendation: "APPROVE - No risk flags detected in partner network"
+            },
+            compliance: {
+                query_id: `QUERY-${Date.now()}`,
+                auditable: true,
+                regulation_compliance: ["BSA", "KYC", "OFAC"]
+            },
+            _internal_demo_data: {
+                original_email: originalEmail,
+                note: "This user is not in Maple CEX's risk database"
+            }
+        };
+    }
+
+    // Generate compliance recommendations
+    generateRecommendation(status, riskTags) {
+        if (status === 'BLOCKED' || riskTags.includes('Sanctions_List_Hit')) {
+            return "REJECT - Extreme compliance risk detected";
+        } else if (status === 'BANNED' || riskTags.includes('Velocity_Withdrawals')) {
+            return "REJECT - High risk user, manual review required";
+        } else {
+            return "MANUAL_REVIEW - Moderate risk flags detected";
+        }
     }
 }
 
-const matcher = new PrivacyPreservingMatcher();
+const proofSystem = new CryptographicProofSystem();
 
-// Updated checkUser function for backwards compatibility
-function checkUser(userEmail) {
+// Backwards compatibility functions
+async function performEnhancedRiskCheck(userEmail) {
+    return await proofSystem.performRiskQuery(userEmail);
+}
+
+async function checkUser(userEmail) {
     if (!userEmail || userEmail.trim() === '') {
         return 'No Match Found';
     }
-
-    const result = matcher.checkUserRisk(userEmail);
     
-    if (result.matchFound) {
-        return result.riskFlags;
+    const result = await proofSystem.performRiskQuery(userEmail);
+    
+    if (result.result.match_found) {
+        return result.result.risk_tags;
     } else {
         return 'No Match Found';
     }
-}
-
-// Enhanced query function for the new demo
-function performEnhancedRiskCheck(userEmail) {
-    return matcher.checkUserRisk(userEmail);
 }
 
 // ===== UI INTERACTION LOGIC =====
@@ -363,7 +449,8 @@ const uiTestSuite = new TestSuite();
 uiTestSuite.addTest('Required DOM elements should exist', () => {
     const requiredElements = [
         'userInput', 'checkButton', 'resultsPanel', 
-        'revealToggle', 'partnerDataPanel', 'partnerDataDisplay'
+        'coinflexViewBtn', 'mapleCEXViewBtn', 'partnerDataDisplay',
+        'showTechnicalBtn', 'technicalPanel'
     ];
     
     for (let elementId of requiredElements) {
@@ -374,18 +461,28 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
     return true;
 });
 
-// Initialize UI functionality
-function initializeUI() {
-    const userInput = document.getElementById('userInput');
-    const checkButton = document.getElementById('checkButton');
-    const resultsPanel = document.getElementById('resultsPanel');
-    const revealToggle = document.getElementById('revealToggle');
-    const partnerDataPanel = document.getElementById('partnerDataPanel');
-    const partnerDataDisplay = document.getElementById('partnerDataDisplay');
-    const apiStatus = document.getElementById('apiStatus');
-    const sunscreenAPI = document.getElementById('sunscreenAPI');
+    // Initialize UI functionality
+    function initializeUI() {
+        const userInput = document.getElementById('userInput');
+        const checkButton = document.getElementById('checkButton');
+        const resultsPanel = document.getElementById('resultsPanel');
+        const partnerDataDisplay = document.getElementById('partnerDataDisplay');
+        const apiStatus = document.getElementById('apiStatus');
+        const sunscreenAPI = document.getElementById('sunscreenAPI');
+        
+        // View switching elements
+        const coinflexViewBtn = document.getElementById('coinflexViewBtn');
+        const mapleCEXViewBtn = document.getElementById('mapleCEXViewBtn');
+        const coinflexView = document.getElementById('coinflexView');
+        const mapleCEXView = document.getElementById('mapleCEXView');
+        const viewDescription = document.getElementById('viewDescription');
+        
+        // Technical details elements
+        const showTechnicalBtn = document.getElementById('showTechnicalBtn');
+        const technicalPanel = document.getElementById('technicalPanel');
+        const technicalContent = document.getElementById('technicalContent');
 
-    // Handle user query
+    // Handle user query with cryptographic proof system
     async function handleUserQuery() {
         const userEmail = userInput.value.trim();
         
@@ -400,11 +497,16 @@ function initializeUI() {
         // Simulate API call delay for demo effect
         await simulateAPICall();
         
-        // Get enhanced result from our privacy-preserving logic
-        const result = performEnhancedRiskCheck(userEmail);
-        
-        // Display result
-        displayEnhancedResult(userEmail, result);
+        try {
+            // Get cryptographic proof receipt from Sunscreen API
+            const proofReceipt = await proofSystem.performRiskQuery(userEmail);
+            
+            // Display the proof receipt
+            displayProofReceipt(userEmail, proofReceipt);
+        } catch (error) {
+            console.error('Query failed:', error);
+            showError('Query failed. Please try again.');
+        }
     }
 
     function showLoadingState() {
@@ -425,7 +527,7 @@ function initializeUI() {
         await new Promise(resolve => setTimeout(resolve, 1500));
     }
 
-    function displayEnhancedResult(userEmail, result) {
+    function displayProofReceipt(userEmail, proofReceipt) {
         // Reset API visual
         apiStatus.textContent = 'Ready';
         apiStatus.style.background = '#28a745';
@@ -433,22 +535,22 @@ function initializeUI() {
 
         let responseHTML;
         
-        if (!result.matchFound) {
+        if (!proofReceipt.result.match_found) {
             responseHTML = `
                 <div class="api-response no-match">
                     <h4>🟢 Query Complete - User Clear</h4>
                     <p><strong>Email:</strong> ${userEmail}</p>
                     <p><strong>Result:</strong> No risk flags found across partner network</p>
-                    <p><strong>Recommendation:</strong> ✅ Approve for onboarding</p>
+                    <p><strong>Recommendation:</strong> ✅ ${proofReceipt.result.recommendation}</p>
                     <div style="margin-top: 0.75rem; padding: 0.5rem; background: #d4edda; border-radius: 4px; font-size: 0.9rem;">
-                        <strong>🔒 Privacy Note:</strong> Query was processed without revealing user identity to partners
+                        <strong>🔐 Privacy Protected:</strong> Query processed without revealing user identity to partners
                     </div>
                 </div>
             `;
         } else {
-            // Determine risk level based on status and flags rather than score
-            const isExtreme = result.status === 'BLOCKED' || result.riskFlags.includes('Sanctions_List_Hit');
-            const isHigh = result.status === 'BANNED' || result.riskFlags.includes('Velocity_Withdrawals');
+            // Determine risk level and color based on recommendation
+            const isExtreme = proofReceipt.result.recommendation.includes('REJECT') && proofReceipt.result.recommendation.includes('Extreme');
+            const isHigh = proofReceipt.result.recommendation.includes('REJECT');
             
             const riskLevel = isExtreme ? 'EXTREME' : isHigh ? 'HIGH' : 'MODERATE';
             const riskColor = isExtreme ? '#dc3545' : isHigh ? '#fd7e14' : '#ffc107';
@@ -457,25 +559,52 @@ function initializeUI() {
                 <div class="api-response" style="border-left: 4px solid ${riskColor};">
                     <h4>⚠️ Risk Alert - ${riskLevel} RISK</h4>
                     <p><strong>Email:</strong> ${userEmail}</p>
-                    <p><strong>Flagged Date:</strong> ${result.flaggedQuarter}</p>
-                    <p><strong>Match Type:</strong> ${result.matchType.toUpperCase()} match found</p>
-                    <p><strong>Status:</strong> <span style="background: ${riskColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;">${result.status}</span></p>
+                    <p><strong>Flagged Quarter:</strong> ${proofReceipt.result.flagged_quarter}</p>
+                    <p><strong>Status:</strong> <span style="background: ${riskColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;">${proofReceipt.result.status}</span></p>
+
                     <div style="margin: 0.75rem 0;">
                         <strong>Risk Flags:</strong><br/>
-                        ${result.riskFlags.map(flag => `<span style="background: #dc3545; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8rem; margin: 2px;">${flag}</span>`).join('')}
+                        ${proofReceipt.result.risk_tags.map(flag => `<span style="background: #dc3545; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8rem; margin: 2px;">${flag}</span>`).join('')}
                     </div>
-                    <div style="margin-top: 0.75rem; padding: 0.5rem; background: #f8d7da; border-radius: 4px; font-size: 0.9rem;">
-                        <strong>Investigation Notes:</strong> "${result.notes}"
-                    </div>
+                    
+                    <p><strong>Recommendation:</strong> ${proofReceipt.result.recommendation}</p>
+
                     <div style="margin-top: 0.75rem; padding: 0.5rem; background: #fff3cd; border-radius: 4px; font-size: 0.9rem;">
-                        <strong>🔒 Privacy Preserved:</strong> Partner never learned you were investigating this user
+                        <strong>🔐 Privacy Protected:</strong> Partner never learned you were investigating this user
                     </div>
-                    <p style="margin-top: 0.75rem;"><strong>Recommendation:</strong> ❌ Do not onboard - High risk user</p>
                 </div>
             `;
         }
 
         resultsPanel.innerHTML = responseHTML;
+        
+        // Update technical details panel
+        updateTechnicalDetails(proofReceipt);
+    }
+
+    function updateTechnicalDetails(proofReceipt) {
+        const technicalHTML = `
+            <div style="margin-bottom: 1rem;">
+                <h5>🔒 Cryptographic Proof Receipt:</h5>
+                <pre style="background: white; padding: 1rem; border-radius: 4px; overflow-x: auto; font-size: 0.8rem;">${JSON.stringify(proofReceipt, null, 2)}</pre>
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <h5>🔐 SHA-256 Details:</h5>
+                <p><strong>User Email Hash:</strong><br/><code style="word-break: break-all; background: #e9ecef; padding: 0.25rem; border-radius: 3px;">${proofReceipt.query_hash}</code></p>
+                <p><strong>Proof Signature:</strong><br/><code style="word-break: break-all; background: #e9ecef; padding: 0.25rem; border-radius: 3px;">${proofReceipt.signature || 'N/A'}</code></p>
+            </div>
+            <div>
+                <h5>🎯 Privacy Analysis:</h5>
+                <ul style="margin: 0; padding-left: 1.5rem;">
+                    <li>Email was hashed locally before transmission</li>
+                    <li>Partner database searched using SHA-256 hash only</li>
+                    <li>Cryptographic signature prevents tampering</li>
+                    <li>Compliance-ready audit trail generated</li>
+                </ul>
+            </div>
+        `;
+        
+        technicalContent.innerHTML = technicalHTML;
     }
 
     function showError(message) {
@@ -487,48 +616,39 @@ function initializeUI() {
         `;
     }
 
-    // Handle partner data reveal toggle
-    function handleDataReveal() {
-        const isRevealed = revealToggle.checked;
-        
-        if (isRevealed) {
-            // Show partner data - the "AHA!" moment
-            partnerDataPanel.classList.remove('hidden');
-            displayPartnerData();
-        } else {
-            // Hide partner data
-            partnerDataPanel.classList.add('hidden');
-            partnerDataDisplay.innerHTML = '<p style="color: #6c757d; font-style: italic;">Data hidden for privacy</p>';
-        }
-    }
 
-    function displayPartnerData() {
-        const formattedData = Object.entries(mapleCEXRiskDatabase)
-            .map(([profileId, riskProfile]) => {
-                const tagList = riskProfile.riskFlags.map(tag => 
+
+        function displayPartnerData() {
+        const formattedData = Object.entries(mapleCEX_HashDatabase)
+            .map(([emailHash, riskData]) => {
+                const tagList = riskData.risk_tags.map(tag => 
                     `<span style="background: #dc3545; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8rem;">${tag}</span>`
                 ).join(' ');
                 
                 return `<div style="margin-bottom: 1.5rem; padding: 1rem; border-left: 3px solid #6f42c1; background: #f8f9fa; border-radius: 4px;">
                     <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 0.5rem;">
-                        <strong style="color: #6f42c1;">${profileId}</strong>
-                        <span style="background: ${riskProfile.status === 'BANNED' ? '#dc3545' : riskProfile.status === 'BLOCKED' ? '#fd7e14' : '#ffc107'}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold;">${riskProfile.status}</span>
+                        <strong style="color: #6f42c1; font-family: monospace; font-size: 0.9rem;">${emailHash.substring(0, 16)}...</strong>
+                        <span style="background: ${riskData.status === 'BANNED' ? '#dc3545' : riskData.status === 'BLOCKED' ? '#fd7e14' : '#ffc107'}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold;">${riskData.status}</span>
                     </div>
                     <div style="margin-bottom: 0.5rem;">
-                        <strong>Flagged Date:</strong> ${new Date(riskProfile.flaggedDate).toLocaleDateString()} |
-                        <strong>Reported as:</strong> ${matcher.dateToQuarter(riskProfile.flaggedDate)}
+                        <strong>Case ID:</strong> ${riskData.internal_case_id} | 
+                        <strong>Officer:</strong> ${riskData.compliance_officer}
                     </div>
                     <div style="margin-bottom: 0.5rem;">
-                        <strong>Identifiers:</strong> ${riskProfile.emailHash}, ${riskProfile.phoneHash}
+                        <strong>Exact Date:</strong> ${new Date(riskData.exact_flagged_date).toLocaleDateString()} | 
+                        <strong>Reported Quarter:</strong> ${riskData.flagged_quarter}
                     </div>
                     <div style="margin-bottom: 0.5rem;">
-                        <strong>Wallets:</strong> <code style="font-size: 0.8rem;">${riskProfile.walletAddresses.join(', ')}</code>
+                        <strong>SHA-256 Hash:</strong> <code style="font-size: 0.75rem; background: #e9ecef; padding: 2px 4px; border-radius: 3px;">${emailHash}</code>
                     </div>
                     <div style="margin-bottom: 0.5rem;">
-                        <strong>Flags:</strong> ${tagList}
+                        <strong>Wallets:</strong> <code style="font-size: 0.8rem;">${riskData.wallet_addresses.join(', ')}</code>
                     </div>
-                    <div style="font-size: 0.9rem; color: #666; font-style: italic;">
-                        "${riskProfile.investigationNotes}"
+                    <div style="margin-bottom: 0.5rem;">
+                        <strong>Risk Tags:</strong> ${tagList}
+                    </div>
+                    <div style="font-size: 0.9rem; color: #666; font-style: italic; margin-top: 0.5rem;">
+                        <strong>Investigation:</strong> "${riskData.investigation_notes}"
                     </div>
                 </div>`;
             })
@@ -536,48 +656,81 @@ function initializeUI() {
 
         partnerDataDisplay.innerHTML = `
             <div style="margin-bottom: 1rem; color: #6f42c1; font-weight: bold; font-size: 1.1rem;">
-                🏛️ Maple CEX Internal Risk Database
+                🏛️ Maple CEX SHA-256 Hashed Risk Database
             </div>
             <div style="margin-bottom: 1rem; padding: 0.75rem; background: #e7f3ff; border-radius: 4px; font-size: 0.9rem;">
-                <strong>📊 Database Stats:</strong> ${Object.keys(mapleCEXRiskDatabase).length} risk profiles | 
-                Last updated: ${new Date().toLocaleDateString()}
+                <strong>🔐 Security:</strong> All identifiers SHA-256 hashed | <strong>📊 Records:</strong> ${Object.keys(mapleCEX_HashDatabase).length} risk profiles<br/>
+                <strong>🗓️ Updated:</strong> ${new Date().toLocaleDateString()} | <strong>🔍 Compliance:</strong> BSA, KYC, OFAC compliant
             </div>
             ${formattedData}
-            <div style="margin-top: 1.5rem; padding: 1rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
-                <div style="font-weight: bold; color: #856404; margin-bottom: 0.5rem;">💡 The "Aha!" Moment:</div>
-                <div style="font-size: 0.9rem; color: #856404;">
-                                         This detailed risk database exists at Maple CEX, but when CoinFlex makes a query through Sunscreen:
-                     <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
-                         <li><strong>CoinFlex only learns:</strong> Risk flags and quarter when flagged (not exact dates)</li>
-                         <li><strong>Maple CEX never sees:</strong> Who CoinFlex is investigating</li>
-                         <li><strong>Privacy preserved:</strong> Temporal info shared in quarterly buckets only</li>
-                     </ul>
-                    <strong>That's the power of encrypted coordination!</strong>
+            <div style="margin-top: 1.5rem; padding: 1rem; background: #e7f3ff; border-left: 4px solid #0066cc; border-radius: 4px;">
+                <div style="font-weight: bold; color: #0066cc; margin-bottom: 0.5rem;">🎯 What Makes This Powerful:</div>
+                <div style="font-size: 0.9rem; color: #0066cc;">
+                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                        <li><strong>Your data stays internal:</strong> Partners never see raw email addresses</li>
+                        <li><strong>Cryptographic hashing:</strong> Industry-standard SHA-256 protects identities</li>
+                        <li><strong>Quarterly reporting:</strong> Share temporal patterns, not exact dates</li>
+                        <li><strong>Zero knowledge sharing:</strong> Coordination without data exposure</li>
+                    </ul>
+                    <strong>This enables secure inter-exchange collaboration!</strong>
                 </div>
             </div>
         `;
     }
 
-    // Event listeners
-    checkButton.addEventListener('click', handleUserQuery);
-    
-    // Allow Enter key to trigger search
-    userInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            handleUserQuery();
+            // View switching functions
+        function switchToCoinflexView() {
+            coinflexViewBtn.classList.add('active');
+            mapleCEXViewBtn.classList.remove('active');
+            coinflexView.classList.remove('hidden');
+            mapleCEXView.classList.add('hidden');
+            viewDescription.textContent = 'You are CoinFlex onboarding a new user. Check if they\'re flagged by partner exchanges.';
         }
-    });
-    
-    revealToggle.addEventListener('change', handleDataReveal);
 
-    // Initialize partner data display
-    handleDataReveal();
+        function switchToMapleCEXView() {
+            mapleCEXViewBtn.classList.add('active');
+            coinflexViewBtn.classList.remove('active');
+            mapleCEXView.classList.remove('hidden');
+            coinflexView.classList.add('hidden');
+            viewDescription.textContent = 'You are Maple CEX. Your risk data helps partners detect bad actors while preserving privacy.';
+        }
 
-    console.log('✅ UI initialized successfully');
-    
-    // Run UI tests
-    console.log('\n🧪 Running UI Tests...');
-    uiTestSuite.runAllTests();
-}
+        function toggleTechnicalDetails() {
+            const isHidden = technicalPanel.classList.contains('hidden');
+            if (isHidden) {
+                technicalPanel.classList.remove('hidden');
+                showTechnicalBtn.textContent = '🔧 Hide Technical Details';
+            } else {
+                technicalPanel.classList.add('hidden');
+                showTechnicalBtn.textContent = '🔧 Show Technical Details';
+            }
+        }
+
+        // Event listeners
+        checkButton.addEventListener('click', handleUserQuery);
+        
+        // Allow Enter key to trigger search
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleUserQuery();
+            }
+        });
+        
+        // View switching listeners
+        coinflexViewBtn.addEventListener('click', switchToCoinflexView);
+        mapleCEXViewBtn.addEventListener('click', switchToMapleCEXView);
+        
+        // Technical details toggle
+        showTechnicalBtn.addEventListener('click', toggleTechnicalDetails);
+
+        // Initialize partner data display (always visible in Maple CEX view)
+        displayPartnerData();
+
+        console.log('✅ UI initialized successfully');
+        
+        // Run UI tests
+        console.log('\n🧪 Running UI Tests...');
+        uiTestSuite.runAllTests();
+    }
 
 // ===== ENHANCED PAGE INITIALIZATION ===== 

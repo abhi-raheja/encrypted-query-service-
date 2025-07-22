@@ -330,45 +330,7 @@ input:checked ~ .view-label:last-child {
     font-weight: 500;
 }
 
-/* ===== TECHNICAL DETAILS SECTION ===== */
-.technical-details {
-    margin-top: 1.5rem;
-    border-top: 1px solid #dee2e6;
-    padding-top: 1rem;
-}
 
-.technical-toggle-btn {
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-}
-
-.technical-toggle-btn:hover {
-    background: #e9ecef;
-}
-
-.technical-panel {
-    margin-top: 1rem;
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    padding: 1rem;
-}
-
-.technical-panel.hidden {
-    display: none;
-}
-
-.technical-content {
-    font-family: 'Monaco', 'Menlo', monospace;
-    font-size: 0.85rem;
-    max-height: 300px;
-    overflow-y: auto;
-}
 
 /* ===== PARTNER INFO SECTION ===== */
 .partner-info {

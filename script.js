@@ -242,11 +242,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 // TODO: Now implement the actual functionality to make tests pass
 
 // ===== REALISTIC HASHED EXCHANGE DATABASE =====
-// This simulates Maple CEX's actual risk database using SHA-256 hashes
-// Keys are SHA-256 hashes of user emails (industry standard)
+// This simulates Maple CEX's actual risk database using privacy-protected identifiers
+// Keys are cryptographic hashes of user emails (industry standard)
 
 const mapleCEX_HashDatabase = {
-    // SHA-256 hash of: 'alex.chen@gmail.com'
+    // Privacy-protected hash of: 'alex.chen@gmail.com'
     "4a283f357be6639bcf06457b59bd6754e06e3c1d1b917b0eb76a7f27aa32a289": {
         risk_tags: ["Velocity_Withdrawals", "Suspicious_Patterns"],
         flagged_quarter: "Q4 2023",
@@ -258,7 +258,7 @@ const mapleCEX_HashDatabase = {
         internal_case_id: "RISK-2023-1247"
     },
     
-    // SHA-256 hash of: 'crypto.trader2024@protonmail.com'  
+    // Privacy-protected hash of: 'crypto.trader2024@protonmail.com'  
     "86fd7e480273a8712be320b7d403a5a15733d0dc39732d44088acf35ad04721a": {
         risk_tags: ["Sanctions_List_Hit", "Multiple_Accounts", "VPN_Usage"],
         flagged_quarter: "Q4 2023",
@@ -270,7 +270,7 @@ const mapleCEX_HashDatabase = {
         internal_case_id: "SANCTIONS-2023-0892"
     },
 
-    // SHA-256 hash of: 'fraud-user-1@email.com'
+    // Privacy-protected hash of: 'fraud-user-1@email.com'
     "7ee64bc27fce592d32610fea7ac0a971440b3bed040f905d9b35ef23095aa169": {
         risk_tags: ["High_Velocity_Withdrawals"],
         flagged_quarter: "Q3 2024", 
@@ -282,7 +282,7 @@ const mapleCEX_HashDatabase = {
         internal_case_id: "VELOCITY-2024-0156"
     },
 
-    // SHA-256 hash of: 'sanctioned-user@email.com'
+    // Privacy-protected hash of: 'sanctioned-user@email.com'
     "e4d2e6f0de586fb0a9b4d7f9df0ede8290a617fbfbf0edff05129e5810788e41": {
         risk_tags: ["Sanctions_List_Hit", "Flagged_KYC"],
         flagged_quarter: "Q2 2023",
@@ -491,8 +491,7 @@ const uiTestSuite = new TestSuite();
 uiTestSuite.addTest('Required DOM elements should exist', () => {
     const requiredElements = [
         'userInput', 'checkButton', 'resultsPanel', 
-        'viewToggle', 'partnerDataDisplay',
-        'showTechnicalBtn', 'technicalPanel'
+        'viewToggle', 'partnerDataDisplay'
     ];
     
     for (let elementId of requiredElements) {
@@ -518,10 +517,7 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
         const mapleCEXView = document.getElementById('mapleCEXView');
         const viewDescription = document.getElementById('viewDescription');
         
-        // Technical details elements
-        const showTechnicalBtn = document.getElementById('showTechnicalBtn');
-        const technicalPanel = document.getElementById('technicalPanel');
-        const technicalContent = document.getElementById('technicalContent');
+
 
     // Handle user query with cryptographic proof system
     async function handleUserQuery() {
@@ -626,44 +622,6 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
         }
 
         resultsPanel.innerHTML = responseHTML;
-        
-        // Update technical details panel
-        updateTechnicalDetails(proofReceipt);
-    }
-
-    function updateTechnicalDetails(proofReceipt) {
-        // Create the external-only proof (what CoinFlex actually receives)
-        const externalProof = {
-            provider: proofReceipt.provider,
-            timestamp: proofReceipt.timestamp,
-            query_hash: proofReceipt.query_hash,
-            result: proofReceipt.result, // Only external result, no internal data
-            compliance: proofReceipt.compliance,
-            signature: proofReceipt.signature
-        };
-        
-        const technicalHTML = `
-            <div style="margin-bottom: 1rem;">
-                <h5>🔒 Actual Proof Receipt (What CoinFlex Receives):</h5>
-                <pre style="background: white; padding: 1rem; border-radius: 4px; overflow-x: auto; font-size: 0.8rem;">${JSON.stringify(externalProof, null, 2)}</pre>
-            </div>
-            <div style="margin-bottom: 1rem;">
-                <h5>🔐 SHA-256 Details:</h5>
-                <p><strong>User Email Hash:</strong><br/><code style="word-break: break-all; background: #e9ecef; padding: 0.25rem; border-radius: 3px;">${proofReceipt.query_hash}</code></p>
-                <p><strong>Proof Signature:</strong><br/><code style="word-break: break-all; background: #e9ecef; padding: 0.25rem; border-radius: 3px;">${proofReceipt.signature || 'N/A'}</code></p>
-            </div>
-            <div style="background: #fff3cd; padding: 1rem; border-radius: 4px; border-left: 4px solid #ffc107;">
-                <h5 style="margin: 0 0 0.5rem 0; color: #856404;">🎯 Privacy Protection in Action:</h5>
-                <ul style="margin: 0; padding-left: 1.5rem; color: #856404;">
-                    <li><strong>Email hashed locally</strong> - Raw email never transmitted</li>
-                    <li><strong>Minimal data sharing</strong> - Only risk tags and quarter, no internal status</li>
-                    <li><strong>No internal details</strong> - Case IDs, officers, notes stay private</li>
-                    <li><strong>Cryptographic proof</strong> - Tamper-evident and auditable</li>
-                </ul>
-            </div>
-        `;
-        
-        technicalContent.innerHTML = technicalHTML;
     }
     
     // Log queries for Maple CEX audit dashboard
@@ -748,9 +706,9 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
                     </div>
                     <div class="query-result">
                         <span class="match-indicator ${matchClass}">${matchText}</span>
-                        <span style="margin-left: 1rem; font-size: 0.9rem; color: #6c757d;">
-                            Hash: ${query.queryHash.substring(0, 16)}...
-                        </span>
+                                                 <span style="margin-left: 1rem; font-size: 0.9rem; color: #6c757d;">
+                             Query ID: ${query.id}
+                         </span>
                     </div>
                     ${sharedDataHTML}
                 </div>
@@ -780,7 +738,7 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
                 
                 return `<div style="margin-bottom: 1.5rem; padding: 1rem; border-left: 3px solid #6f42c1; background: #f8f9fa; border-radius: 4px;">
                     <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 0.5rem;">
-                        <strong style="color: #6f42c1; font-family: monospace; font-size: 0.9rem;">${emailHash.substring(0, 16)}...</strong>
+                        <strong style="color: #6f42c1; font-family: monospace; font-size: 0.9rem;">Case ${riskData.internal_case_id}</strong>
                         <span style="background: ${riskData.status === 'BANNED' ? '#dc3545' : riskData.status === 'BLOCKED' ? '#fd7e14' : '#ffc107'}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold;">${riskData.status}</span>
                     </div>
                     <div style="margin-bottom: 0.5rem;">
@@ -791,9 +749,7 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
                         <strong>Exact Date:</strong> ${new Date(riskData.exact_flagged_date).toLocaleDateString()} | 
                         <strong>Reported Quarter:</strong> ${riskData.flagged_quarter}
                     </div>
-                    <div style="margin-bottom: 0.5rem;">
-                        <strong>SHA-256 Hash:</strong> <code style="font-size: 0.75rem; background: #e9ecef; padding: 2px 4px; border-radius: 3px;">${emailHash}</code>
-                    </div>
+
                     <div style="margin-bottom: 0.5rem;">
                         <strong>Wallets:</strong> <code style="font-size: 0.8rem;">${riskData.wallet_addresses.join(', ')}</code>
                     </div>
@@ -809,10 +765,10 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
 
         partnerDataDisplay.innerHTML = `
             <div style="margin-bottom: 1rem; color: #6f42c1; font-weight: bold; font-size: 1.1rem;">
-                🏛️ Maple CEX SHA-256 Hashed Risk Database
+                🏛️ Maple CEX Risk Database
             </div>
             <div style="margin-bottom: 1rem; padding: 0.75rem; background: #e7f3ff; border-radius: 4px; font-size: 0.9rem;">
-                <strong>🔐 Security:</strong> All identifiers SHA-256 hashed | <strong>📊 Records:</strong> ${Object.keys(mapleCEX_HashDatabase).length} risk profiles<br/>
+                <strong>🔐 Security:</strong> Privacy-protected identifiers | <strong>📊 Records:</strong> ${Object.keys(mapleCEX_HashDatabase).length} risk profiles<br/>
                 <strong>🗓️ Updated:</strong> ${new Date().toLocaleDateString()} | <strong>🔍 Compliance:</strong> BSA, KYC, OFAC compliant
             </div>
             ${formattedData}
@@ -821,7 +777,6 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
                 <div style="font-size: 0.9rem; color: #0066cc;">
                     <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
                         <li><strong>Your data stays internal:</strong> Partners never see raw email addresses</li>
-                        <li><strong>Cryptographic hashing:</strong> Industry-standard SHA-256 protects identities</li>
                         <li><strong>Quarterly reporting:</strong> Share temporal patterns, not exact dates</li>
                         <li><strong>Zero knowledge sharing:</strong> Coordination without data exposure</li>
                     </ul>
@@ -848,16 +803,7 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
             }
         }
 
-        function toggleTechnicalDetails() {
-            const isHidden = technicalPanel.classList.contains('hidden');
-            if (isHidden) {
-                technicalPanel.classList.remove('hidden');
-                showTechnicalBtn.textContent = '🔧 Hide Technical Details';
-            } else {
-                technicalPanel.classList.add('hidden');
-                showTechnicalBtn.textContent = '🔧 Show Technical Details';
-            }
-        }
+
 
         // Event listeners
         checkButton.addEventListener('click', handleUserQuery);
@@ -872,8 +818,7 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
         // View switching listener
         viewToggle.addEventListener('change', toggleView);
         
-        // Technical details toggle
-        showTechnicalBtn.addEventListener('click', toggleTechnicalDetails);
+
 
         // Initialize partner data display (always visible in Maple CEX view)
         displayPartnerData();

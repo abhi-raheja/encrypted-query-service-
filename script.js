@@ -354,7 +354,7 @@ class CryptographicProofSystem {
                 match_found: true,
                 risk_tags: riskData.risk_tags,
                 flagged_quarter: riskData.flagged_quarter, // Privacy-preserving date
-                match_field: "email_hash" // What field was matched
+                match_field: "email" // What field was matched
                 // NOTE: No status or recommendation from Maple CEX - they only provide raw risk data
             },
             compliance: {
@@ -406,7 +406,7 @@ class CryptographicProofSystem {
             timestamp: timestamp,
             result: {
                 match_found: false,
-                match_field: "email_hash"
+                match_field: "email"
             },
             compliance: {
                 query_id: `QUERY-${Date.now()}`,

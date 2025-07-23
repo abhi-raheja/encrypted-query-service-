@@ -504,12 +504,13 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
 
     // Initialize UI functionality
     function initializeUI() {
-        const userInput = document.getElementById('userInput');
-        const checkButton = document.getElementById('checkButton');
-        const resultsPanel = document.getElementById('resultsPanel');
-        const partnerDataDisplay = document.getElementById('partnerDataDisplay');
-        const apiStatus = document.getElementById('apiStatus');
-        const sunscreenAPI = document.getElementById('sunscreenAPI');
+        // Get DOM elements and make them accessible to other functions
+        window.userInput = document.getElementById('userInput');
+        window.checkButton = document.getElementById('checkButton');
+        window.resultsPanel = document.getElementById('resultsPanel');
+        window.partnerDataDisplay = document.getElementById('partnerDataDisplay');
+        window.apiStatus = document.getElementById('apiStatus');
+        window.sunscreenAPI = document.getElementById('sunscreenAPI');
         
         // View switching elements
         const viewToggle = document.getElementById('viewToggle');
@@ -521,7 +522,7 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
 
     // Handle user query with cryptographic proof system
     async function handleUserQuery() {
-        const userEmail = userInput.value.trim();
+        const userEmail = window.userInput.value.trim();
         
         if (!userEmail) {
             showError('Please enter a user email address');
@@ -553,11 +554,11 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
     }
 
     function showLoadingState() {
-        apiStatus.textContent = 'Processing...';
-        apiStatus.style.background = '#ffc107';
-        sunscreenAPI.style.transform = 'scale(1.05)';
+        window.apiStatus.textContent = 'Processing...';
+        window.apiStatus.style.background = '#ffc107';
+        window.sunscreenAPI.style.transform = 'scale(1.05)';
         
-        resultsPanel.innerHTML = `
+        window.resultsPanel.innerHTML = `
             <div class="api-response">
                 <p>🔄 Querying Sunscreen API...</p>
                 <p>Coordinating with partner networks...</p>
@@ -572,9 +573,9 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
 
     function displayProofReceipt(userEmail, proofReceipt) {
         // Reset API visual
-        apiStatus.textContent = 'Ready';
-        apiStatus.style.background = '#28a745';
-        sunscreenAPI.style.transform = 'scale(1)';
+        window.apiStatus.textContent = 'Ready';
+        window.apiStatus.style.background = '#28a745';
+        window.sunscreenAPI.style.transform = 'scale(1)';
 
         let responseHTML;
         
@@ -584,7 +585,6 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
                     <h4>🟢 Query Complete - User Clear</h4>
                     <p><strong>Email:</strong> ${userEmail}</p>
                     <p><strong>Result:</strong> No risk flags found across partner network</p>
-                    <p><strong>Sunscreen Recommendation:</strong> ✅ ${proofReceipt.sunscreen_analysis.recommendation}</p>
                     <div style="margin-top: 0.75rem; padding: 0.5rem; background: #d4edda; border-radius: 4px; font-size: 0.9rem;">
                         <strong>🔐 Privacy Protected:</strong> Query processed without revealing user identity to partners
                     </div>
@@ -601,7 +601,7 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
             
             responseHTML = `
                 <div class="api-response" style="border-left: 4px solid ${riskColor};">
-                    <h4>⚠️ Risk Alert - ${riskLevel} RISK</h4>
+                    <h4>⚠️ Risk Alert</h4>
                     <p><strong>Email:</strong> ${userEmail}</p>
                     <p><strong>Flagged Quarter:</strong> ${proofReceipt.result.flagged_quarter}</p>
                     <p><strong>Match Field:</strong> ${proofReceipt.result.match_field}</p>
@@ -610,9 +610,6 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
                         <strong>Risk Flags:</strong><br/>
                         ${proofReceipt.result.risk_tags.map(flag => `<span style="background: #dc3545; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8rem; margin: 2px;">${flag}</span>`).join('')}
                     </div>
-                    
-                    <p><strong>Sunscreen Recommendation:</strong> ${proofReceipt.sunscreen_analysis.recommendation}</p>
-                    <p><strong>Risk Level:</strong> <span style="background: ${riskColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;">${proofReceipt.sunscreen_analysis.risk_level}</span></p>
 
                     <div style="margin-top: 0.75rem; padding: 0.5rem; background: #fff3cd; border-radius: 4px; font-size: 0.9rem;">
                         <strong>🔐 Privacy Protected:</strong> Partner never learned you were investigating this user
@@ -621,7 +618,7 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
             `;
         }
 
-        resultsPanel.innerHTML = responseHTML;
+        window.resultsPanel.innerHTML = responseHTML;
     }
     
     // Log queries for Maple CEX audit dashboard
@@ -632,11 +629,9 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
             queryHash: proofReceipt.query_hash,
             matchFound: proofReceipt.result.match_found,
             sharedData: proofReceipt.result.match_found ? {
-                                 risk_tags: proofReceipt.result.risk_tags,
+                 risk_tags: proofReceipt.result.risk_tags,
                  flagged_quarter: proofReceipt.result.flagged_quarter,
-                 match_field: proofReceipt.result.match_field,
-                 sunscreen_recommendation: proofReceipt.sunscreen_analysis.recommendation,
-                 risk_level: proofReceipt.sunscreen_analysis.risk_level
+                 match_field: proofReceipt.result.match_field
             } : null,
             // For demo purposes only - in reality this wouldn't be logged
             _demo_email: userEmail
@@ -719,7 +714,7 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
     }
 
     function showError(message) {
-        resultsPanel.innerHTML = `
+        window.resultsPanel.innerHTML = `
             <div class="api-response no-match">
                 <h4>❌ Error</h4>
                 <p>${message}</p>
@@ -763,7 +758,7 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
             })
             .join('');
 
-        partnerDataDisplay.innerHTML = `
+        window.partnerDataDisplay.innerHTML = `
             <div style="margin-bottom: 1rem; color: #6f42c1; font-weight: bold; font-size: 1.1rem;">
                 🏛️ Maple CEX Risk Database
             </div>
@@ -806,10 +801,10 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
 
 
         // Event listeners
-        checkButton.addEventListener('click', handleUserQuery);
+        window.checkButton.addEventListener('click', handleUserQuery);
         
         // Allow Enter key to trigger search
-        userInput.addEventListener('keypress', (e) => {
+        window.userInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 handleUserQuery();
             }

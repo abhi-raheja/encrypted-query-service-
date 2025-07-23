@@ -592,8 +592,8 @@ const uiTestSuite = new TestSuite();
 // Add UI tests
 uiTestSuite.addTest('Required DOM elements should exist', () => {
     const requiredElements = [
-        'userInput', 'checkButton', 'resultsPanel', 
-        'viewToggle', 'partnerDataDisplay'
+        'userEmail', 'userPhone', 'userCountry', 'docType', 'docNumber',
+        'checkButton', 'resultsPanel', 'viewToggle', 'partnerDataDisplay'
     ];
     
     for (let elementId of requiredElements) {
@@ -623,14 +623,26 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
 
     // Handle user query with cryptographic proof system
     async function handleUserQuery() {
-        // Get all form values
-        const userData = {
-            email: document.getElementById('userEmail').value.trim(),
-            phone: document.getElementById('userPhone').value.trim(),
-            country: document.getElementById('userCountry').value.trim(),
-            doc_type: document.getElementById('docType').value,
-            doc_number: document.getElementById('docNumber').value.trim()
-        };
+        // Get all form values with error checking
+        const userData = {};
+        
+        try {
+            const emailField = document.getElementById('userEmail');
+            const phoneField = document.getElementById('userPhone');
+            const countryField = document.getElementById('userCountry');
+            const docTypeField = document.getElementById('docType');
+            const docNumberField = document.getElementById('docNumber');
+            
+            userData.email = emailField ? emailField.value.trim() : '';
+            userData.phone = phoneField ? phoneField.value.trim() : '';
+            userData.country = countryField ? countryField.value.trim() : '';
+            userData.doc_type = docTypeField ? docTypeField.value : '';
+            userData.doc_number = docNumberField ? docNumberField.value.trim() : '';
+        } catch (error) {
+            console.error('Error accessing form fields:', error);
+            showError('Form fields not available. Please refresh the page.');
+            return;
+        }
         
         // Check if at least one field is filled
         const hasData = Object.values(userData).some(value => value !== '');
@@ -938,13 +950,17 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
         
         // Allow Enter key to trigger search on any input field
         ['userEmail', 'userPhone', 'userCountry', 'docNumber'].forEach(fieldId => {
-            const field = document.getElementById(fieldId);
-            if (field) {
-                field.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        handleUserQuery();
-                    }
-                });
+            try {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    field.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            handleUserQuery();
+                        }
+                    });
+                }
+            } catch (error) {
+                console.warn(`Could not add event listener to ${fieldId}:`, error);
             }
         });
         

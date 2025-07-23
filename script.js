@@ -325,19 +325,61 @@ class CryptographicProofSystem {
 
     // Main query function - this is what CoinFlex would call
     async performRiskQuery(userEmail) {
-        // Step 1: Hash the user's email (never send raw PII)
-        const queryHash = await sha256(userEmail);
+        // Legacy single email support
+        const userData = { email: userEmail };
+        return this.performMultiFieldRiskQuery(userData);
+    }
+    
+    // Multi-field risk query
+    async performMultiFieldRiskQuery(userData) {
+        // Try to find matches across multiple fields
+        let matchedData = null;
+        let matchedFields = [];
+        let queryHash = '';
         
-        console.log(`🔍 Querying with hash: ${queryHash.substring(0, 16)}...`);
+        console.log(`🔍 Multi-field query: ${Object.keys(userData).filter(k => userData[k]).join(', ')}`);
         
-        // Step 2: Search the hashed database
-        const matchedData = mapleCEX_HashDatabase[queryHash];
+        // Check each database entry for field matches
+        for (const [hash, riskData] of Object.entries(mapleCEX_HashDatabase)) {
+            const matches = [];
+            
+            // Check email match
+            if (userData.email && riskData.user_data.email === userData.email) {
+                matches.push('email');
+            }
+            
+            // Check phone match
+            if (userData.phone && riskData.user_data.phone === userData.phone) {
+                matches.push('phone');
+            }
+            
+            // Check country match
+            if (userData.country && riskData.user_data.country.toLowerCase() === userData.country.toLowerCase()) {
+                matches.push('country');
+            }
+            
+            // Check document match (both type and number must match)
+            if (userData.doc_type && userData.doc_number && 
+                riskData.user_data.document_type === userData.doc_type &&
+                riskData.user_data.document_number === userData.doc_number) {
+                matches.push('document');
+            }
+            
+            // If we have any matches, this is our result
+            if (matches.length > 0) {
+                matchedData = riskData;
+                matchedFields = matches;
+                queryHash = hash;
+                console.log(`✅ Match found on fields: ${matches.join(', ')}`);
+                break;
+            }
+        }
         
-        // Step 3: Generate cryptographic proof receipt
         if (matchedData) {
-            return await this.generateProofReceipt(queryHash, matchedData, userEmail);
+            return this.generateMultiFieldProofReceipt(queryHash, matchedData, userData, matchedFields);
         } else {
-            return this.generateNoMatchReceipt(queryHash, userEmail);
+            console.log('❌ No matches found');
+            return this.generateNoMatchReceipt(queryHash || await sha256(JSON.stringify(userData)), userData);
         }
     }
 
@@ -395,9 +437,69 @@ class CryptographicProofSystem {
 
         return finalProofReceipt;
     }
+    
+    // Generate proof receipt for multi-field matches
+    async generateMultiFieldProofReceipt(queryHash, riskData, originalUserData, matchedFields) {
+        const timestamp = new Date().toISOString();
+        
+        // What the querying exchange actually receives (minimal info)
+        const externalResult = {
+            match_found: true,
+            risk_tags: riskData.risk_tags,
+            flagged_quarter: riskData.flagged_quarter, // Privacy-preserving date
+            matched_fields: matchedFields // What fields were matched
+            // NOTE: No status or recommendation from Maple CEX - they only provide raw risk data
+        };
+        
+        const proofContent = {
+            provider: "MapleCEX", 
+            timestamp: timestamp,
+            query_hash: queryHash,
+            result: externalResult,
+            compliance: {
+                query_id: `QRY-${Date.now()}`,
+                regulation_basis: "BSA/KYC compliance check",
+                data_retention_days: 2555, // 7 years
+                classification: "RESTRICTED"
+            }
+        };
+
+        // Generate cryptographic signature of Maple CEX's raw data response
+        const signatureContent = `${proofContent.provider}${proofContent.timestamp}${proofContent.query_hash}${JSON.stringify(proofContent.result)}`;
+        const signature = await sha256(signatureContent);
+        
+        // Now Sunscreen processes the raw data and adds its own recommendation
+        const sunscreenRecommendation = this.generateSunscreenRecommendation(riskData.status, riskData.risk_tags);
+        
+        // Final proof receipt includes both Maple CEX data + Sunscreen's analysis
+        const finalProofReceipt = {
+            ...proofContent,
+            signature: signature,
+            sunscreen_analysis: {
+                recommendation: sunscreenRecommendation,
+                risk_level: this.calculateRiskLevel(riskData.risk_tags),
+                compliance_guidance: "Review recommended based on partner data"
+            }
+        };
+
+        // For demo purposes, also return internal data for the "aha!" moment
+        finalProofReceipt._internal_demo_data = {
+            original_user_data: originalUserData,
+            internal_case_id: riskData.internal_case_id,
+            compliance_officer: riskData.compliance_officer,
+            investigation_notes: riskData.investigation_notes,
+            wallet_addresses: riskData.wallet_addresses,
+            exact_flagged_date: riskData.exact_flagged_date,
+            internal_status: riskData.status, // Internal status stays internal
+            reported_quarter: riskData.flagged_quarter,
+            matched_user_data: riskData.user_data
+        };
+
+        return finalProofReceipt;
+    }
 
     // Generate receipt for clean users (no match)
-    async generateNoMatchReceipt(queryHash, originalEmail) {
+    async generateNoMatchReceipt(queryHash, originalUserData) {
         const timestamp = new Date().toISOString();
         
         const baseReceipt = {
@@ -406,7 +508,7 @@ class CryptographicProofSystem {
             timestamp: timestamp,
             result: {
                 match_found: false,
-                match_field: "email"
+                searched_fields: Object.keys(originalUserData).filter(key => originalUserData[key])
             },
             compliance: {
                 query_id: `QUERY-${Date.now()}`,
@@ -428,7 +530,7 @@ class CryptographicProofSystem {
                 compliance_guidance: "No risk indicators found - proceed with standard onboarding"
             },
             _internal_demo_data: {
-                original_email: originalEmail,
+                original_user_data: originalUserData,
                 note: "This user is not in Maple CEX's risk database",
                 total_records_checked: Object.keys(mapleCEX_HashDatabase).length
             }
@@ -505,7 +607,6 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
     // Initialize UI functionality
     function initializeUI() {
         // Get DOM elements and make them accessible to other functions
-        window.userInput = document.getElementById('userInput');
         window.checkButton = document.getElementById('checkButton');
         window.resultsPanel = document.getElementById('resultsPanel');
         window.partnerDataDisplay = document.getElementById('partnerDataDisplay');
@@ -522,13 +623,23 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
 
     // Handle user query with cryptographic proof system
     async function handleUserQuery() {
-        const userEmail = window.userInput.value.trim();
+        // Get all form values
+        const userData = {
+            email: document.getElementById('userEmail').value.trim(),
+            phone: document.getElementById('userPhone').value.trim(),
+            country: document.getElementById('userCountry').value.trim(),
+            doc_type: document.getElementById('docType').value,
+            doc_number: document.getElementById('docNumber').value.trim()
+        };
         
-        if (!userEmail) {
-            showError('Please enter a user email address');
+        // Check if at least one field is filled
+        const hasData = Object.values(userData).some(value => value !== '');
+        
+        if (!hasData) {
+            showError('Please enter at least one piece of user information');
             return;
         }
-
+        
         // Show loading state
         showLoadingState();
         
@@ -537,13 +648,13 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
         
         try {
             // Get cryptographic proof receipt from Sunscreen API
-            const proofReceipt = await proofSystem.performRiskQuery(userEmail);
+            const proofReceipt = await proofSystem.performMultiFieldRiskQuery(userData);
             
             // Log the query for Maple CEX audit dashboard
-            logQueryForAudit(userEmail, proofReceipt);
+            logQueryForAudit(userData, proofReceipt);
             
             // Display the proof receipt
-            displayProofReceipt(userEmail, proofReceipt);
+            displayProofReceipt(userData, proofReceipt);
             
             // Update dashboard if in Maple CEX view
             updateQueryDashboard();
@@ -571,7 +682,7 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
         await new Promise(resolve => setTimeout(resolve, 1500));
     }
 
-    function displayProofReceipt(userEmail, proofReceipt) {
+    function displayProofReceipt(userData, proofReceipt) {
         // Reset API visual
         window.apiStatus.textContent = 'Ready';
         window.apiStatus.style.background = '#28a745';
@@ -579,11 +690,19 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
 
         let responseHTML;
         
+        // Build user info display
+        const userInfoItems = [];
+        if (userData.email) userInfoItems.push(`Email: ${userData.email}`);
+        if (userData.phone) userInfoItems.push(`Phone: ${userData.phone}`);
+        if (userData.country) userInfoItems.push(`Country: ${userData.country}`);
+        if (userData.doc_type && userData.doc_number) userInfoItems.push(`Document: ${userData.doc_type} ${userData.doc_number}`);
+        const userInfoText = userInfoItems.join(' | ');
+        
         if (!proofReceipt.result.match_found) {
             responseHTML = `
                 <div class="api-response no-match">
                     <h4>🟢 Query Complete - User Clear</h4>
-                    <p><strong>Email:</strong> ${userEmail}</p>
+                    <p><strong>Searched Fields:</strong> ${userInfoText}</p>
                     <p><strong>Result:</strong> No risk flags found across partner network</p>
                     <div style="margin-top: 0.75rem; padding: 0.5rem; background: #d4edda; border-radius: 4px; font-size: 0.9rem;">
                         <strong>🔐 Privacy Protected:</strong> Query processed without revealing user identity to partners
@@ -591,7 +710,7 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
                 </div>
             `;
         } else {
-                         // Determine risk level and color based on Sunscreen's analysis
+            // Determine risk level and color based on Sunscreen's analysis
             const riskLevel = proofReceipt.sunscreen_analysis.risk_level;
             const isExtreme = riskLevel === 'EXTREME';
             const isHigh = riskLevel === 'HIGH';
@@ -599,12 +718,16 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
             // Risk level already determined by Sunscreen
             const riskColor = isExtreme ? '#dc3545' : isHigh ? '#fd7e14' : '#ffc107';
             
+            // Format matched fields
+            const matchedFields = proofReceipt.result.matched_fields || proofReceipt.result.match_field ? [proofReceipt.result.match_field] : [];
+            const matchedFieldsText = matchedFields.join(', ');
+            
             responseHTML = `
                 <div class="api-response" style="border-left: 4px solid ${riskColor};">
                     <h4>⚠️ Risk Alert</h4>
-                    <p><strong>Email:</strong> ${userEmail}</p>
+                    <p><strong>Searched Fields:</strong> ${userInfoText}</p>
                     <p><strong>Flagged Quarter:</strong> ${proofReceipt.result.flagged_quarter}</p>
-                    <p><strong>Match Field:</strong> ${proofReceipt.result.match_field}</p>
+                    <p><strong>Matched Fields:</strong> ${matchedFieldsText}</p>
 
                     <div style="margin: 0.75rem 0;">
                         <strong>Risk Flags:</strong><br/>
@@ -622,7 +745,7 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
     }
     
     // Log queries for Maple CEX audit dashboard
-    function logQueryForAudit(userEmail, proofReceipt) {
+    function logQueryForAudit(userData, proofReceipt) {
         const queryEntry = {
             id: proofReceipt.compliance.query_id,
             timestamp: proofReceipt.timestamp,
@@ -631,10 +754,12 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
             sharedData: proofReceipt.result.match_found ? {
                  risk_tags: proofReceipt.result.risk_tags,
                  flagged_quarter: proofReceipt.result.flagged_quarter,
-                 match_field: proofReceipt.result.match_field
-            } : null,
+                 matched_fields: proofReceipt.result.matched_fields || [proofReceipt.result.match_field]
+            } : {
+                 searched_fields: proofReceipt.result.searched_fields
+            },
             // For demo purposes only - in reality this wouldn't be logged
-            _demo_email: userEmail
+            _demo_user_data: userData
         };
         
         queryAuditLog.unshift(queryEntry); // Add to beginning
@@ -744,7 +869,15 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
                         <strong>Exact Date:</strong> ${new Date(riskData.exact_flagged_date).toLocaleDateString()} | 
                         <strong>Reported Quarter:</strong> ${riskData.flagged_quarter}
                     </div>
-
+                    <div style="margin-bottom: 0.5rem;">
+                        <strong>User Data:</strong><br/>
+                        <div style="margin-left: 1rem; font-size: 0.85rem;">
+                            <strong>Email:</strong> ${riskData.user_data.email}<br/>
+                            <strong>Phone:</strong> ${riskData.user_data.phone}<br/>
+                            <strong>Country:</strong> ${riskData.user_data.country}<br/>
+                            <strong>Document:</strong> ${riskData.user_data.document_type} ${riskData.user_data.document_number}
+                        </div>
+                    </div>
                     <div style="margin-bottom: 0.5rem;">
                         <strong>Wallets:</strong> <code style="font-size: 0.8rem;">${riskData.wallet_addresses.join(', ')}</code>
                     </div>
@@ -803,10 +936,15 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
         // Event listeners
         window.checkButton.addEventListener('click', handleUserQuery);
         
-        // Allow Enter key to trigger search
-        window.userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                handleUserQuery();
+        // Allow Enter key to trigger search on any input field
+        ['userEmail', 'userPhone', 'userCountry', 'docNumber'].forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        handleUserQuery();
+                    }
+                });
             }
         });
         

@@ -202,32 +202,46 @@ input:checked ~ .view-label:last-child {
     margin-bottom: 2rem;
 }
 
-.input-section label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
+.input-section h3 {
+    margin-bottom: 1rem;
     color: #495057;
 }
 
-.input-section input {
-    width: 100%;
+.input-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.input-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.input-field label {
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.input-field input, .input-field select {
     padding: 0.75rem;
     border: 2px solid #dee2e6;
     border-radius: 6px;
     font-size: 1rem;
-    margin-bottom: 1rem;
     transition: border-color 0.3s ease;
 }
 
-.input-section input:focus {
+.input-field input:focus, .input-field select:focus {
     outline: none;
     border-color: #28a745;
     box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
 }
 
 .input-section button {
-    width: 100%;
-    padding: 0.75rem 1.5rem;
+    padding: 0.75rem 2rem;
     background: linear-gradient(135deg, #28a745, #20c997);
     color: white;
     border: none;
@@ -236,6 +250,7 @@ input:checked ~ .view-label:last-child {
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
+    margin-bottom: 0.5rem;
 }
 
 .input-section button:hover {
@@ -246,6 +261,13 @@ input:checked ~ .view-label:last-child {
 
 .input-section button:active {
     transform: translateY(0);
+}
+
+.input-note {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-style: italic;
+    margin: 0;
 }
 
 /* ===== RESULTS SECTION ===== */

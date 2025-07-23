@@ -36,9 +36,37 @@
                 <div class="exchange-column main-column">
                     <h2>🏦 CoinFlex - User Onboarding</h2>
                     <div class="input-section">
-                        <label for="userInput">Enter User Email to Check:</label>
-                        <input type="email" id="userInput" placeholder="e.g., alex.chen@gmail.com or fraud-user-1@email.com" />
+                        <h3>User Information to Check:</h3>
+                        <div class="input-grid">
+                            <div class="input-field">
+                                <label for="userEmail">Email Address:</label>
+                                <input type="email" id="userEmail" placeholder="e.g., alex.chen@gmail.com" />
+                            </div>
+                            <div class="input-field">
+                                <label for="userPhone">Contact Number:</label>
+                                <input type="tel" id="userPhone" placeholder="e.g., +1-555-0123" />
+                            </div>
+                            <div class="input-field">
+                                <label for="userCountry">Residence Country:</label>
+                                <input type="text" id="userCountry" placeholder="e.g., United States" />
+                            </div>
+                            <div class="input-field">
+                                <label for="docType">Identity Document Type:</label>
+                                <select id="docType">
+                                    <option value="">Select document type</option>
+                                    <option value="passport">Passport</option>
+                                    <option value="drivers_license">Driver's License</option>
+                                    <option value="national_id">National ID</option>
+                                    <option value="ssn">Social Security Number</option>
+                                </select>
+                            </div>
+                            <div class="input-field">
+                                <label for="docNumber">Document Number:</label>
+                                <input type="text" id="docNumber" placeholder="e.g., A12345678" />
+                            </div>
+                        </div>
                         <button id="checkButton">Check User with Sunscreen</button>
+                        <p class="input-note">Fill in any available fields - partial matches are supported</p>
                     </div>
                     <div class="results-section">
                         <h3>Sunscreen Query Results:</h3>
@@ -135,34 +163,43 @@
                  </div>
              </div>
 
-            <h4>📧 Test Email Addresses:</h4>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem;">
-                <div style="background: #f8d7da; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #dc3545;">
-                    <code style="font-weight: bold;">alex.chen@gmail.com</code><br/>
-                    <small>High risk - Velocity withdrawals</small>
-                </div>
-                <div style="background: #fff3cd; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #ffc107;">
-                    <code style="font-weight: bold;">sanctioned-user@email.com</code><br/>
-                    <small>Extreme risk - OFAC sanctions</small>
-                </div>
-                <div style="background: #e7f3ff; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #0066cc;">
-                    <code style="font-weight: bold;">fraud-user-1@email.com</code><br/>
-                    <small>Under review - High velocity</small>
-                </div>
-                <div style="background: #d4edda; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #28a745;">
-                    <code style="font-weight: bold;">clean-user@example.com</code><br/>
-                    <small>Clean user - No flags</small>
-                </div>
-            </div>
+                         <h4>🧪 Test User Scenarios:</h4>
+             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem;">
+                 <div style="background: #f8d7da; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #dc3545;">
+                     <strong>High Risk User:</strong><br/>
+                     <small><strong>Email:</strong> alex.chen@gmail.com<br/>
+                     <strong>Phone:</strong> +1-555-0187<br/>
+                     <strong>Country:</strong> United States<br/>
+                     <strong>Doc:</strong> drivers_license DL789456123</small>
+                 </div>
+                 <div style="background: #fff3cd; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #ffc107;">
+                     <strong>Sanctions List User:</strong><br/>
+                     <small><strong>Email:</strong> crypto.trader2024@protonmail.com<br/>
+                     <strong>Phone:</strong> +44-20-7946-0958<br/>
+                     <strong>Country:</strong> United Kingdom<br/>
+                     <strong>Doc:</strong> passport GBR123456789</small>
+                 </div>
+                 <div style="background: #e7f3ff; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #0066cc;">
+                     <strong>Under Review User:</strong><br/>
+                     <small><strong>Email:</strong> fraud-user-1@email.com<br/>
+                     <strong>Phone:</strong> +1-555-0199<br/>
+                     <strong>Country:</strong> Canada<br/>
+                     <strong>Doc:</strong> national_id CAN987654321</small>
+                 </div>
+                 <div style="background: #d4edda; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #28a745;">
+                     <strong>Clean User:</strong><br/>
+                     <small>Try any email not listed above, or partial matches with different fields</small>
+                 </div>
+             </div>
 
                          <h4>🔄 Demo Steps:</h4>
              <ol style="line-height: 1.6;">
                  <li><strong>Start in CoinFlex view</strong> - You're onboarding a new user</li>
-                 <li><strong>Enter a test email</strong> and click "Check User with Sunscreen"</li>
-                 <li><strong>See minimal shared data</strong> - Only risk tags, quarter, match field</li>
-                 <li><strong>Review the clean business decision</strong> - Simple approve/reject recommendation</li>
-                 <li><strong>Toggle to Maple CEX view</strong> to see the partner's rich internal database</li>
-                 <li><strong>Notice the "aha!" moment</strong> - Internal details never shared with querying party</li>
+                 <li><strong>Fill in user information</strong> - Try any combination of fields (email, phone, country, document)</li>
+                 <li><strong>See multi-field matching</strong> - System finds matches across different data points</li>
+                 <li><strong>Notice matched fields</strong> - Shows exactly which fields triggered the match</li>
+                 <li><strong>Toggle to Maple CEX view</strong> to see comprehensive user profiles and audit dashboard</li>
+                 <li><strong>Experience the "aha!" moment</strong> - Rich internal data vs. minimal external sharing</li>
              </ol>
         </div>
 

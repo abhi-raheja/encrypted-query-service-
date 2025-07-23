@@ -73,6 +73,12 @@
                         <div id="resultsPanel" class="results-panel">
                             <p class="placeholder">No queries yet. Enter a user email above to check against partner network.</p>
                         </div>
+                        
+                        <div class="audit-section">
+                            <button onclick="openAuditModal()" class="audit-log-btn">
+                                📋 Regulatory Audit Log
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -106,15 +112,7 @@
                         <div class="dashboard-stats">
                             <div class="stat-card">
                                 <div class="stat-number" id="totalQueries">0</div>
-                                <div class="stat-label">Total Queries</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-number" id="totalMatches">0</div>
-                                <div class="stat-label">Matches Found</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-number" id="dataSharedCount">0</div>
-                                <div class="stat-label">Data Points Shared</div>
+                                <div class="stat-label">Total Queries Received</div>
                             </div>
                         </div>
                         
@@ -145,10 +143,28 @@
                         </ul>
                     </div>
                 </div>
+                    </div>
+    </div>
+
+    <!-- Audit Modal -->
+    <div id="auditModal" class="audit-modal">
+        <div class="audit-modal-content">
+            <div class="audit-modal-header">
+                <h3>🏛️ Regulatory Audit Log - CoinFlex Exchange</h3>
+                <span class="audit-modal-close" onclick="closeAuditModal()">&times;</span>
+            </div>
+            <div class="audit-modal-body">
+                <div class="audit-compliance-info">
+                    <p><strong>Data Retention:</strong> 7 years as per regulatory requirements</p>
+                </div>
+                <div id="auditLogContainer" class="audit-log-container">
+                    <!-- Audit entries will be populated here -->
+                </div>
             </div>
         </div>
+    </div>
 
-        <!-- Demo Instructions -->
+    <!-- Demo Instructions -->
         <div class="demo-instructions">
             <h3>🎯 How to Use This Demo:</h3>
             

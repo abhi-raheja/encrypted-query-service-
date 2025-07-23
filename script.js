@@ -604,6 +604,9 @@ const proofSystem = new CryptographicProofSystem();
 // Query audit log for Maple CEX dashboard
 const queryAuditLog = [];
 
+// Compliance audit log for CoinFlex regulatory purposes
+const complianceAuditLog = [];
+
 // Backwards compatibility functions
 async function performEnhancedRiskCheck(userEmail) {
     return await proofSystem.performRiskQuery(userEmail);
@@ -725,6 +728,11 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
             // Log the query for Maple CEX audit dashboard
             logQueryForAudit(userData, proofReceipt);
             
+            // Log for CoinFlex compliance audit (full data retention)
+            console.log('🔍 Logging compliance audit for:', userData);
+            logComplianceAudit(userData, proofReceipt);
+            console.log('📋 Compliance audit log now has', complianceAuditLog.length, 'entries');
+            
             // Display the proof receipt
             displayProofReceipt(userData, proofReceipt);
             
@@ -763,55 +771,79 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
         window.apiStatus.style.background = '#28a745';
         window.sunscreenAPI.style.transform = 'scale(1)';
 
+        // Store the actual data for toggling
+        window.currentQueryData = {
+            userData: userData,
+            proofReceipt: proofReceipt,
+            isDecrypted: false
+        };
+
+        // Always start with encrypted view
+        renderQueryResult(false);
+    }
+
+    // Make renderQueryResult globally accessible for the toggle function
+    window.renderQueryResult = function(isDecrypted) {
+        const { userData, proofReceipt } = window.currentQueryData;
+        const encryptedPlaceholder = "&lt;encrypted&gt;";
+        
         let responseHTML;
         
-        // Build user info display
+        // Build user info display with encryption toggle
         const userInfoItems = [];
-        if (userData.email) userInfoItems.push(`Email: ${userData.email}`);
-        if (userData.phone) userInfoItems.push(`Phone: ${userData.phone}`);
-        if (userData.country) userInfoItems.push(`Country: ${userData.country}`);
-        if (userData.doc_type && userData.doc_number) userInfoItems.push(`Document: ${userData.doc_type} ${userData.doc_number}`);
+        if (userData.email) userInfoItems.push(`Email: ${isDecrypted ? userData.email : encryptedPlaceholder}`);
+        if (userData.phone) userInfoItems.push(`Phone: ${isDecrypted ? userData.phone : encryptedPlaceholder}`);
+        if (userData.country) userInfoItems.push(`Country: ${isDecrypted ? userData.country : encryptedPlaceholder}`);
+        if (userData.doc_type && userData.doc_number) userInfoItems.push(`Document: ${isDecrypted ? userData.doc_type + ' ' + userData.doc_number : encryptedPlaceholder}`);
         const userInfoText = userInfoItems.join(' | ');
+        
+        // Decrypt button
+        const decryptButton = `
+            <button onclick="${isDecrypted ? '' : 'toggleDecryption()'}" class="decrypt-toggle-btn ${isDecrypted ? 'decrypted-state' : ''}">
+                ${isDecrypted ? '🔓 Decrypted' : '🔓 Decrypt'}
+            </button>
+        `;
         
         if (!proofReceipt.result.match_found) {
             responseHTML = `
                 <div class="api-response no-match">
-                    <h4>🟢 Query Complete - User Clear</h4>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h4>🟢 Query Complete - ${isDecrypted ? 'User Clear' : encryptedPlaceholder}</h4>
+                        ${decryptButton}
+                    </div>
                     <p><strong>Searched Fields:</strong> ${userInfoText}</p>
-                    <p><strong>Result:</strong> No risk flags found across partner network</p>
+                    <p><strong>Result:</strong> ${isDecrypted ? 'No risk flags found across partner network' : encryptedPlaceholder}</p>
                     <div style="margin-top: 0.75rem; padding: 0.5rem; background: #d4edda; border-radius: 4px; font-size: 0.9rem;">
                         <strong>🔐 Privacy Protected:</strong> Query processed without revealing user identity to partners
                     </div>
                 </div>
             `;
         } else {
-            // Determine risk level and color based on Sunscreen's analysis
+            // Handle risk alert case
             const riskLevel = proofReceipt.sunscreen_analysis.risk_level;
             const isExtreme = riskLevel === 'EXTREME';
             const isHigh = riskLevel === 'HIGH';
-            
-            // Risk level already determined by Sunscreen
             const riskColor = isExtreme ? '#dc3545' : isHigh ? '#fd7e14' : '#ffc107';
-            
-            // Format matched fields
-            console.log('🔍 Debug matched fields:', proofReceipt.result.matched_fields);
-            console.log('🔍 Debug match field:', proofReceipt.result.match_field);
             
             const matchedFields = proofReceipt.result.matched_fields || (proofReceipt.result.match_field ? [proofReceipt.result.match_field] : []);
             const matchedFieldsText = matchedFields.length > 0 ? matchedFields.join(', ') : 'No matches detected';
             
-            console.log('🔍 Final matched fields to display:', matchedFieldsText);
-            
             responseHTML = `
                 <div class="api-response" style="border-left: 4px solid ${riskColor};">
-                    <h4>⚠️ Risk Alert</h4>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h4>⚠️ Risk Alert</h4>
+                        ${decryptButton}
+                    </div>
                     <p><strong>Searched Fields:</strong> ${userInfoText}</p>
-                    <p><strong>Flagged Quarter:</strong> ${proofReceipt.result.flagged_quarter}</p>
-                    <p><strong>Matched Fields:</strong> ${matchedFieldsText}</p>
+                    <p><strong>Flagged Quarter:</strong> ${isDecrypted ? proofReceipt.result.flagged_quarter : encryptedPlaceholder}</p>
+                    <p><strong>Matched Fields:</strong> ${isDecrypted ? matchedFieldsText : encryptedPlaceholder}</p>
 
                     <div style="margin: 0.75rem 0;">
                         <strong>Risk Flags:</strong><br/>
-                        ${proofReceipt.result.risk_tags.map(flag => `<span style="background: #dc3545; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8rem; margin: 2px;">${flag}</span>`).join('')}
+                        ${isDecrypted ? 
+                            proofReceipt.result.risk_tags.map(flag => `<span style="background: #dc3545; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8rem; margin: 2px;">${flag}</span>`).join('') :
+                            `<span style="background: #6c757d; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8rem; margin: 2px;">${encryptedPlaceholder}</span>`
+                        }
                     </div>
 
                     <div style="margin-top: 0.75rem; padding: 0.5rem; background: #fff3cd; border-radius: 4px; font-size: 0.9rem;">
@@ -822,24 +854,26 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
         }
 
         window.resultsPanel.innerHTML = responseHTML;
+        window.currentQueryData.isDecrypted = isDecrypted;
+    }
+
+    // Make toggleDecryption globally accessible
+    window.toggleDecryption = function() {
+        const currentState = window.currentQueryData.isDecrypted;
+        renderQueryResult(!currentState);
     }
     
-    // Log queries for Maple CEX audit dashboard
+    // Log queries for Maple CEX audit dashboard (privacy-preserving)
     function logQueryForAudit(userData, proofReceipt) {
         const queryEntry = {
             id: proofReceipt.compliance.query_id,
             timestamp: proofReceipt.timestamp,
-            queryHash: proofReceipt.query_hash,
-            matchFound: proofReceipt.result.match_found,
-            sharedData: proofReceipt.result.match_found ? {
-                 risk_tags: proofReceipt.result.risk_tags,
-                 flagged_quarter: proofReceipt.result.flagged_quarter,
-                 matched_fields: proofReceipt.result.matched_fields || [proofReceipt.result.match_field]
-            } : {
-                 searched_fields: proofReceipt.result.searched_fields
-            },
-            // For demo purposes only - in reality this wouldn't be logged
-            _demo_user_data: userData
+            queryingPartner: "CoinFlex Exchange"
+            // Note: In true encrypted queries, MapleCEX would never know:
+            // - If a match was found
+            // - What data was shared  
+            // - What fields were searched
+            // This preserves complete privacy for the querying exchange
         };
         
         queryAuditLog.unshift(queryEntry); // Add to beginning
@@ -849,20 +883,138 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
             queryAuditLog.pop();
         }
     }
+
+    // Log compliance audit entries for regulatory purposes
+    function logComplianceAudit(userData, proofReceipt) {
+        const auditEntry = {
+            id: proofReceipt.compliance.query_id,
+            timestamp: proofReceipt.timestamp,
+            query_time_utc: new Date(proofReceipt.timestamp).toISOString(),
+            query_time_local: new Date(proofReceipt.timestamp).toLocaleString(),
+            cryptographic_signature: proofReceipt.signature,
+            search_details: {
+                email: userData.email || null,
+                phone: userData.phone || null,
+                country: userData.country || null,
+                document_type: userData.doc_type || null,
+                document_number: userData.doc_number || null
+            },
+            original_query_data: userData,
+            original_response: proofReceipt,
+            compliance_framework: "BSA/AML, OFAC, KYC",
+            data_retention_period: "7 years",
+            audit_trail_verified: true
+        };
+        
+        complianceAuditLog.unshift(auditEntry); // Add to beginning
+        
+        // Keep extensive audit trail (regulatory requirement)
+        if (complianceAuditLog.length > 100) {
+            complianceAuditLog.pop();
+        }
+    }
+
+    // Audit modal functions
+    window.openAuditModal = function() {
+        console.log('🏛️ Opening audit modal, compliance log has', complianceAuditLog.length, 'entries');
+        document.getElementById('auditModal').style.display = 'block';
+        renderAuditLog();
+    }
+
+    window.closeAuditModal = function() {
+        document.getElementById('auditModal').style.display = 'none';
+    }
+
+    window.decryptAuditEntry = function(entryId) {
+        const entry = complianceAuditLog.find(e => e.id === entryId);
+        if (entry) {
+            entry.isDecrypted = true;
+            renderAuditLog();
+        }
+    }
+
+    function renderAuditLog() {
+        const container = document.getElementById('auditLogContainer');
+        
+        if (complianceAuditLog.length === 0) {
+            container.innerHTML = `
+                <div class="no-audit-entries">
+                    <p>No queries in audit log. Perform a user risk check to see audit trail.</p>
+                </div>
+            `;
+            return;
+        }
+
+        const auditHTML = complianceAuditLog.map(entry => {
+            const encryptedPlaceholder = "&lt;encrypted&gt;";
+            const isDecrypted = entry.isDecrypted || false;
+            
+            // Format search details
+            const searchItems = [];
+            if (entry.search_details.email) searchItems.push(`Email: ${isDecrypted ? entry.search_details.email : encryptedPlaceholder}`);
+            if (entry.search_details.phone) searchItems.push(`Phone: ${isDecrypted ? entry.search_details.phone : encryptedPlaceholder}`);
+            if (entry.search_details.country) searchItems.push(`Country: ${isDecrypted ? entry.search_details.country : encryptedPlaceholder}`);
+            if (entry.search_details.document_type) searchItems.push(`Document: ${isDecrypted ? entry.search_details.document_type + ' ' + entry.search_details.document_number : encryptedPlaceholder}`);
+            
+            return `
+                <div class="audit-entry">
+                    <div class="audit-entry-header">
+                        <h4>Query ID: ${entry.id}</h4>
+                        <button onclick="decryptAuditEntry('${entry.id}')" class="audit-decrypt-btn ${isDecrypted ? 'decrypted-state' : ''}" ${isDecrypted ? 'disabled' : ''}>
+                            ${isDecrypted ? '🔓 Decrypted' : '🔓 Decrypt Query Results'}
+                        </button>
+                    </div>
+                    
+                    <div class="audit-entry-details">
+                        <div class="audit-detail-row">
+                            <span class="audit-label">Query Time (UTC):</span>
+                            <span class="audit-value">${entry.query_time_utc}</span>
+                        </div>
+                        <div class="audit-detail-row">
+                            <span class="audit-label">Query Time (Local):</span>
+                            <span class="audit-value">${entry.query_time_local}</span>
+                        </div>
+                                                 <div class="audit-detail-row">
+                             <span class="audit-label">Cryptographic Signature by Responding Exchange:</span>
+                             <span class="audit-value signature-hash">${entry.cryptographic_signature.substring(0, 32)}...</span>
+                         </div>
+                        <div class="audit-detail-row">
+                            <span class="audit-label">Search Details:</span>
+                            <span class="audit-value">${searchItems.join(' | ')}</span>
+                        </div>
+                        
+                                                 ${isDecrypted ? `
+                             <div class="audit-query-results">
+                                 <h5>🔓 Decrypted Query Results:</h5>
+                                 <div class="audit-result-content">
+                                     <p><strong>Data Source Exchange:</strong> ${entry.original_response.provider || 'MapleCEX'}</p>
+                                     ${entry.original_response.result.match_found ? 
+                                         `<p><strong>Result:</strong> Risk Alert - User flagged</p>
+                                          <p><strong>Risk Tags:</strong> ${entry.original_response.result.risk_tags.join(', ')}</p>
+                                          <p><strong>Flagged Quarter:</strong> ${entry.original_response.result.flagged_quarter}</p>
+                                          <p><strong>Matched Fields:</strong> ${entry.original_response.result.matched_fields ? entry.original_response.result.matched_fields.join(', ') : entry.original_response.result.match_field || 'N/A'}</p>
+                                          <p><strong>Provider Query ID:</strong> ${entry.original_response.compliance?.query_id || 'N/A'}</p>` :
+                                         `<p><strong>Result:</strong> User Clear - No risk flags found</p>
+                                          <p><strong>Network Coverage:</strong> Partner exchange network queried</p>`
+                                     }
+                                     <p><strong>Response Timestamp:</strong> ${entry.original_response.timestamp}</p>
+                                 </div>
+                             </div>
+                         ` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        container.innerHTML = auditHTML;
+    }
     
     // Update the query dashboard statistics and log
     function updateQueryDashboard() {
         const totalQueries = queryAuditLog.length;
-        const totalMatches = queryAuditLog.filter(q => q.matchFound).length;
-        const dataSharedCount = queryAuditLog.reduce((count, q) => {
-            if (!q.matchFound) return count;
-            return count + Object.keys(q.sharedData).length;
-        }, 0);
         
-        // Update stats
+        // Update stats - only show total queries received
         document.getElementById('totalQueries').textContent = totalQueries;
-        document.getElementById('totalMatches').textContent = totalMatches;
-        document.getElementById('dataSharedCount').textContent = dataSharedCount;
         
         // Update query log display
         const queryLogDisplay = document.getElementById('queryLogDisplay');
@@ -877,40 +1029,54 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
         }
         
         const logHTML = queryAuditLog.map(query => {
+            const formattedDate = new Date(query.timestamp).toLocaleDateString();
             const formattedTime = new Date(query.timestamp).toLocaleTimeString();
-            const matchClass = query.matchFound ? 'match-found' : 'no-match';
-            const matchText = query.matchFound ? 'MATCH FOUND' : 'NO MATCH';
             
-            let sharedDataHTML = '';
-            if (query.matchFound) {
-                const dataPoints = Object.entries(query.sharedData).map(([key, value]) => {
-                    if (key === 'risk_tags' && Array.isArray(value)) {
-                        return value.map(tag => `<span class="data-point">${tag}</span>`).join('');
-                    }
-                    return `<span class="data-point">${key}: ${value}</span>`;
-                }).join('');
-                
-                sharedDataHTML = `
-                    <div class="shared-data">
-                        <h5>📤 Data Shared with Querying Exchange:</h5>
-                        ${dataPoints}
-                    </div>
-                `;
-            }
+            // Generate encrypted placeholders to show data exists but is encrypted
+            const encryptedPlaceholder = "&lt;encrypted&gt;";
             
             return `
                 <div class="query-entry">
                     <div class="query-header">
-                        <span class="query-id">${query.id}</span>
-                        <span class="query-timestamp">${formattedTime}</span>
+                        <span class="query-id">Query #${query.id}</span>
+                        <span class="query-timestamp">${formattedDate} at ${formattedTime}</span>
                     </div>
-                    <div class="query-result">
-                        <span class="match-indicator ${matchClass}">${matchText}</span>
-                                                 <span style="margin-left: 1rem; font-size: 0.9rem; color: #6c757d;">
-                             Query ID: ${query.id}
-                         </span>
+                    <div class="query-details">
+                        <span class="querying-partner">📊 Querying Partner: ${query.queryingPartner}</span>
                     </div>
-                    ${sharedDataHTML}
+                    
+                    <div class="encrypted-query-result">
+                        <h5>🔐 Encrypted Query Result (As Processed by MapleCEX):</h5>
+                        <div class="encrypted-fields">
+                                                         <div class="encrypted-field">
+                                 <span class="field-label">User Email:</span>
+                                 <span class="encrypted-value">${encryptedPlaceholder}</span>
+                             </div>
+                             <div class="encrypted-field">
+                                 <span class="field-label">Phone Number:</span>
+                                 <span class="encrypted-value">${encryptedPlaceholder}</span>
+                             </div>
+                             <div class="encrypted-field">
+                                 <span class="field-label">Country:</span>
+                                 <span class="encrypted-value">${encryptedPlaceholder}</span>
+                             </div>
+                             <div class="encrypted-field">
+                                 <span class="field-label">Document Info:</span>
+                                 <span class="encrypted-value">${encryptedPlaceholder}</span>
+                             </div>
+                             <div class="encrypted-field">
+                                 <span class="field-label">Risk Data Response:</span>
+                                 <span class="encrypted-value">${encryptedPlaceholder}</span>
+                             </div>
+                             <div class="encrypted-field">
+                                 <span class="field-label">Match Result:</span>
+                                 <span class="encrypted-value">${encryptedPlaceholder}</span>
+                             </div>
+                        </div>
+                        <div class="encryption-notice">
+                            <strong>🔒 Privacy Protection:</strong> All query data is encrypted - MapleCEX cannot see the actual user information or what data was shared with CoinFlex.
+                        </div>
+                    </div>
                 </div>
             `;
         }).join('');

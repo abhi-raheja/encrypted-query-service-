@@ -252,6 +252,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 const mapleCEX_HashDatabase = {
     // Privacy-protected hash of: 'alex.chen@gmail.com'
     "4a283f357be6639bcf06457b59bd6754e06e3c1d1b917b0eb76a7f27aa32a289": {
+        user_data: {
+            email: "alex.chen@gmail.com",
+            phone: "+1-555-0123",
+            country: "United States",
+            document_type: "Passport",
+            document_number: "US123456789"
+        },
         risk_tags: ["Velocity_Withdrawals", "Suspicious_Patterns"],
         flagged_quarter: "Q4 2023",
         exact_flagged_date: "2023-12-10T16:45:00Z", // Internal only
@@ -264,6 +271,13 @@ const mapleCEX_HashDatabase = {
     
     // Privacy-protected hash of: 'crypto.trader2024@protonmail.com'  
     "86fd7e480273a8712be320b7d403a5a15733d0dc39732d44088acf35ad04721a": {
+        user_data: {
+            email: "crypto.trader2024@protonmail.com",
+            phone: "+44-20-7946-0958",
+            country: "United Kingdom", 
+            document_type: "Passport",
+            document_number: "UK987654321"
+        },
         risk_tags: ["Sanctions_List_Hit", "Multiple_Accounts", "VPN_Usage"],
         flagged_quarter: "Q4 2023",
         exact_flagged_date: "2023-11-22T09:12:00Z", // Internal only
@@ -276,6 +290,13 @@ const mapleCEX_HashDatabase = {
 
     // Privacy-protected hash of: 'fraud-user-1@email.com'
     "7ee64bc27fce592d32610fea7ac0a971440b3bed040f905d9b35ef23095aa169": {
+        user_data: {
+            email: "fraud-user-1@email.com",
+            phone: "+1-555-0987",
+            country: "Canada",
+            document_type: "Driver License",
+            document_number: "CA654321987"
+        },
         risk_tags: ["High_Velocity_Withdrawals"],
         flagged_quarter: "Q3 2024", 
         exact_flagged_date: "2024-08-15T10:30:00Z", // Internal only
@@ -288,6 +309,13 @@ const mapleCEX_HashDatabase = {
 
     // Privacy-protected hash of: 'sanctioned-user@email.com'
     "e4d2e6f0de586fb0a9b4d7f9df0ede8290a617fbfbf0edff05129e5810788e41": {
+        user_data: {
+            email: "sanctioned-user@email.com",
+            phone: "+86-138-0013-8000",
+            country: "China",
+            document_type: "National ID",
+            document_number: "CN123456789012345"
+        },
         risk_tags: ["Sanctions_List_Hit", "Flagged_KYC"],
         flagged_quarter: "Q2 2023",
         exact_flagged_date: "2023-05-20T18:00:00Z", // Internal only
@@ -347,6 +375,12 @@ class CryptographicProofSystem {
         for (const [hash, riskData] of Object.entries(mapleCEX_HashDatabase)) {
             const matches = [];
             
+            // Safety check - ensure user_data exists
+            if (!riskData.user_data) {
+                console.warn(`Risk data for hash ${hash.substring(0, 8)}... missing user_data`);
+                continue;
+            }
+            
             // Check email match
             if (userData.email && riskData.user_data.email === userData.email) {
                 matches.push('email');
@@ -358,7 +392,8 @@ class CryptographicProofSystem {
             }
             
             // Check country match
-            if (userData.country && riskData.user_data.country.toLowerCase() === userData.country.toLowerCase()) {
+            if (userData.country && riskData.user_data.country && 
+                riskData.user_data.country.toLowerCase() === userData.country.toLowerCase()) {
                 matches.push('country');
             }
             
@@ -759,8 +794,13 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
             const riskColor = isExtreme ? '#dc3545' : isHigh ? '#fd7e14' : '#ffc107';
             
             // Format matched fields
-            const matchedFields = proofReceipt.result.matched_fields || proofReceipt.result.match_field ? [proofReceipt.result.match_field] : [];
-            const matchedFieldsText = matchedFields.join(', ');
+            console.log('🔍 Debug matched fields:', proofReceipt.result.matched_fields);
+            console.log('🔍 Debug match field:', proofReceipt.result.match_field);
+            
+            const matchedFields = proofReceipt.result.matched_fields || (proofReceipt.result.match_field ? [proofReceipt.result.match_field] : []);
+            const matchedFieldsText = matchedFields.length > 0 ? matchedFields.join(', ') : 'No matches detected';
+            
+            console.log('🔍 Final matched fields to display:', matchedFieldsText);
             
             responseHTML = `
                 <div class="api-response" style="border-left: 4px solid ${riskColor};">
@@ -912,10 +952,10 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
                     <div style="margin-bottom: 0.5rem;">
                         <strong>User Data:</strong><br/>
                         <div style="margin-left: 1rem; font-size: 0.85rem;">
-                            <strong>Email:</strong> ${riskData.user_data.email}<br/>
-                            <strong>Phone:</strong> ${riskData.user_data.phone}<br/>
-                            <strong>Country:</strong> ${riskData.user_data.country}<br/>
-                            <strong>Document:</strong> ${riskData.user_data.document_type} ${riskData.user_data.document_number}
+                            <strong>Email:</strong> ${riskData.user_data?.email || 'N/A'}<br/>
+                            <strong>Phone:</strong> ${riskData.user_data?.phone || 'N/A'}<br/>
+                            <strong>Country:</strong> ${riskData.user_data?.country || 'N/A'}<br/>
+                            <strong>Document:</strong> ${riskData.user_data?.document_type || 'N/A'} ${riskData.user_data?.document_number || 'N/A'}
                         </div>
                     </div>
                     <div style="margin-bottom: 0.5rem;">

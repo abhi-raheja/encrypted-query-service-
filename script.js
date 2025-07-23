@@ -229,12 +229,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize UI after DOM is ready
     setTimeout(() => {
         console.log('\n🎨 Initializing User Interface...');
-        initializeUI();
+        try {
+            initializeUI();
+            console.log('✅ UI initialization completed successfully');
+        } catch (error) {
+            console.error('❌ UI initialization failed:', error);
+            console.error('Error details:', error.stack);
+        }
         
         console.log('\n🎯 Demo Ready!');
-        console.log('Try entering: alex.chen@gmail.com, fraud-user-1@email.com, or sanctioned-user@email.com');
-        console.log('Watch for SHA-256 hashing and cryptographic proof receipts!');
-        console.log('Don\'t forget to toggle "Show Partner\'s Internal Data" for the aha! moment');
+        console.log('Try the multi-field user onboarding demo!');
     }, 100);
 });
 
@@ -623,21 +627,35 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
 
     // Handle user query with cryptographic proof system
     async function handleUserQuery() {
+        console.log('🔍 handleUserQuery called');
+        
         // Get all form values with error checking
         const userData = {};
         
         try {
+            console.log('📝 Gathering form data...');
+            
             const emailField = document.getElementById('userEmail');
             const phoneField = document.getElementById('userPhone');
             const countryField = document.getElementById('userCountry');
             const docTypeField = document.getElementById('docType');
             const docNumberField = document.getElementById('docNumber');
             
+            console.log('Form fields found:', {
+                email: !!emailField,
+                phone: !!phoneField, 
+                country: !!countryField,
+                docType: !!docTypeField,
+                docNumber: !!docNumberField
+            });
+            
             userData.email = emailField ? emailField.value.trim() : '';
             userData.phone = phoneField ? phoneField.value.trim() : '';
             userData.country = countryField ? countryField.value.trim() : '';
             userData.doc_type = docTypeField ? docTypeField.value : '';
             userData.doc_number = docNumberField ? docNumberField.value.trim() : '';
+            
+            console.log('User data collected:', userData);
         } catch (error) {
             console.error('Error accessing form fields:', error);
             showError('Form fields not available. Please refresh the page.');
@@ -648,9 +666,12 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
         const hasData = Object.values(userData).some(value => value !== '');
         
         if (!hasData) {
+            console.log('❌ No data provided');
             showError('Please enter at least one piece of user information');
             return;
         }
+        
+        console.log('✅ Data validation passed, starting query...');
         
         // Show loading state
         showLoadingState();
@@ -659,8 +680,12 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
         await simulateAPICall();
         
         try {
+            console.log('🔍 Performing multi-field risk query...');
+            
             // Get cryptographic proof receipt from Sunscreen API
             const proofReceipt = await proofSystem.performMultiFieldRiskQuery(userData);
+            
+            console.log('📋 Query result received:', proofReceipt);
             
             // Log the query for Maple CEX audit dashboard
             logQueryForAudit(userData, proofReceipt);
@@ -670,9 +695,12 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
             
             // Update dashboard if in Maple CEX view
             updateQueryDashboard();
+            
+            console.log('✅ Query completed successfully');
         } catch (error) {
-            console.error('Query failed:', error);
-            showError('Query failed. Please try again.');
+            console.error('❌ Query execution failed:', error);
+            console.error('Error stack:', error.stack);
+            showError(`Query failed: ${error.message}`);
         }
     }
 

@@ -324,6 +324,44 @@ const mapleCEX_HashDatabase = {
         wallet_addresses: ["1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"],
         compliance_officer: "K.Wilson",
         internal_case_id: "OFAC-2023-0445"
+    },
+    
+    // Test case for cross-contamination: Same passport as alex.chen but different email/phone
+    "a1b2c3d4e5f6789abcdef012345678901234567890abcdef123456789abcdef": {
+        user_data: {
+            email: "different-user@example.com",
+            phone: "+1-555-9999",
+            country: "United States",
+            document_type: "Passport", 
+            document_number: "US123456789"  // Same passport as alex.chen - CONFLICT SCENARIO
+        },
+        risk_tags: ["Identity_Theft_Suspected"],
+        flagged_quarter: "Q3 2024",
+        exact_flagged_date: "2024-08-15T10:30:00Z",
+        status: "UNDER_INVESTIGATION",
+        investigation_notes: "Possible identity document theft or fraud",
+        wallet_addresses: ["bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq"],
+        compliance_officer: "A.Thompson",
+        internal_case_id: "IDENTITY-2024-0789"
+    },
+    
+    // Test case: Same phone as alex.chen but different email/document
+    "fedcba9876543210987654321098765432109876543210987654321098765432": {
+        user_data: {
+            email: "phone-thief@scammer.com",
+            phone: "+1-555-0123",  // Same phone as alex.chen - CONFLICT SCENARIO
+            country: "Mexico",
+            document_type: "National ID",
+            document_number: "MX999888777"
+        },
+        risk_tags: ["SIM_Swap_Attack", "Phone_Number_Hijacking"],
+        flagged_quarter: "Q1 2024", 
+        exact_flagged_date: "2024-02-10T14:20:00Z",
+        status: "BANNED",
+        investigation_notes: "Confirmed SIM swap attack using stolen phone number",
+        wallet_addresses: ["3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy"],
+        compliance_officer: "R.Garcia",
+        internal_case_id: "SIMSWAP-2024-0234"
     }
 };
 
@@ -362,64 +400,216 @@ class CryptographicProofSystem {
         return this.performMultiFieldRiskQuery(userData);
     }
     
-    // Multi-field risk query
+    // Multi-field risk query with hierarchical consistency matching
     async performMultiFieldRiskQuery(userData) {
-        // Try to find matches across multiple fields
-        let matchedData = null;
-        let matchedFields = [];
-        let queryHash = '';
+        const providedFields = Object.keys(userData).filter(k => userData[k] && k !== 'timestamp');
+        console.log(`🔍 Multi-field query: ${providedFields.join(', ')}`);
         
-        console.log(`🔍 Multi-field query: ${Object.keys(userData).filter(k => userData[k]).join(', ')}`);
+        // Collect ALL potential matches for analysis
+        const potentialMatches = [];
         
-        // Check each database entry for field matches
         for (const [hash, riskData] of Object.entries(mapleCEX_HashDatabase)) {
-            const matches = [];
-            
-            // Safety check - ensure user_data exists
             if (!riskData.user_data) {
                 console.warn(`Risk data for hash ${hash.substring(0, 8)}... missing user_data`);
                 continue;
             }
             
-            // Check email match
-            if (userData.email && riskData.user_data.email === userData.email) {
-                matches.push('email');
+            const fieldMatches = [];
+            const fieldConflicts = [];
+            
+            // Check each field systematically
+            if (userData.email) {
+                if (riskData.user_data.email === userData.email) {
+                    fieldMatches.push('email');
+                } else if (riskData.user_data.email) {
+                    fieldConflicts.push('email');
+                }
             }
             
-            // Check phone match
-            if (userData.phone && riskData.user_data.phone === userData.phone) {
-                matches.push('phone');
+            if (userData.phone) {
+                if (riskData.user_data.phone === userData.phone) {
+                    fieldMatches.push('phone');
+                } else if (riskData.user_data.phone) {
+                    fieldConflicts.push('phone');
+                }
             }
             
-            // Check country match
-            if (userData.country && riskData.user_data.country && 
-                riskData.user_data.country.toLowerCase() === userData.country.toLowerCase()) {
-                matches.push('country');
+            if (userData.country) {
+                if (riskData.user_data.country && 
+                    riskData.user_data.country.toLowerCase() === userData.country.toLowerCase()) {
+                    fieldMatches.push('country');
+                } else if (riskData.user_data.country) {
+                    fieldConflicts.push('country');
+                }
             }
             
-            // Check document match (both type and number must match)
-            if (userData.doc_type && userData.doc_number && 
-                riskData.user_data.document_type === userData.doc_type &&
-                riskData.user_data.document_number === userData.doc_number) {
-                matches.push('document');
+            if (userData.doc_type && userData.doc_number) {
+                if (riskData.user_data.document_type === userData.doc_type &&
+                    riskData.user_data.document_number === userData.doc_number) {
+                    fieldMatches.push('document');
+                } else if (riskData.user_data.document_type || riskData.user_data.document_number) {
+                    fieldConflicts.push('document');
+                }
             }
             
-            // If we have any matches, this is our result
-            if (matches.length > 0) {
-                matchedData = riskData;
-                matchedFields = matches;
-                queryHash = hash;
-                console.log(`✅ Match found on fields: ${matches.join(', ')}`);
-                break;
+            // Only consider records with actual matches
+            if (fieldMatches.length > 0) {
+                potentialMatches.push({
+                    hash,
+                    riskData,
+                    matchedFields: fieldMatches,
+                    conflictingFields: fieldConflicts,
+                    matchStrength: fieldMatches.length,
+                    hasConflicts: fieldConflicts.length > 0
+                });
             }
         }
         
-        if (matchedData) {
-            return this.generateMultiFieldProofReceipt(queryHash, matchedData, userData, matchedFields);
-        } else {
+        // Analyze matches for consistency and conflicts
+        return this.analyzeMatches(potentialMatches, userData, providedFields);
+    }
+    
+    // Analyze potential matches for consistency and determine final result
+    async analyzeMatches(potentialMatches, userData, providedFields) {
+        if (potentialMatches.length === 0) {
             console.log('❌ No matches found');
-            return this.generateNoMatchReceipt(queryHash || await sha256(JSON.stringify(userData)), userData);
+            return this.generateNoMatchReceipt(await sha256(JSON.stringify(userData)), userData);
         }
+        
+        console.log(`📊 Found ${potentialMatches.length} potential match(es)`);
+        
+        // Sort by match strength (number of matching fields)
+        potentialMatches.sort((a, b) => b.matchStrength - a.matchStrength);
+        
+        const strongestMatch = potentialMatches[0];
+        const providedFieldCount = providedFields.length;
+        
+        // SCENARIO 1: Single field query - allow but mark as partial
+        if (providedFieldCount === 1) {
+            console.log(`✅ Single-field match on: ${strongestMatch.matchedFields.join(', ')}`);
+            return this.generatePartialMatchReceipt(strongestMatch, userData, 'single_field');
+        }
+        
+        // SCENARIO 2: Multi-field query - validate consistency
+        if (providedFieldCount > 1) {
+            return this.validateMultiFieldConsistency(potentialMatches, userData, providedFields);
+        }
+        
+        // Fallback
+        return this.generateNoMatchReceipt(await sha256(JSON.stringify(userData)), userData);
+    }
+    
+    // Validate multi-field query consistency
+    async validateMultiFieldConsistency(potentialMatches, userData, providedFields) {
+        const strongestMatch = potentialMatches[0];
+        const providedFieldCount = providedFields.length;
+        
+        // Check if strongest match covers ALL provided fields
+        const allFieldsMatch = strongestMatch.matchedFields.length === providedFieldCount;
+        
+        if (allFieldsMatch && !strongestMatch.hasConflicts) {
+            console.log(`✅ Full consistency match on: ${strongestMatch.matchedFields.join(', ')}`);
+            return this.generateMultiFieldProofReceipt(
+                strongestMatch.hash, 
+                strongestMatch.riskData, 
+                userData, 
+                strongestMatch.matchedFields
+            );
+        }
+        
+        // Check for partial matches with conflicts
+        if (strongestMatch.hasConflicts) {
+            console.log(`⚠️ Partial match with conflicts: matched ${strongestMatch.matchedFields.join(', ')}, conflicts on ${strongestMatch.conflictingFields.join(', ')}`);
+            return this.generateConflictedMatchReceipt(strongestMatch, userData);
+        }
+        
+        // Multiple potential matches - might be cross-contamination
+        if (potentialMatches.length > 1) {
+            console.log(`🚨 Multiple potential matches detected - possible cross-contamination`);
+            return this.generateAmbiguousMatchReceipt(potentialMatches, userData);
+        }
+        
+        // Partial match (some fields match, others not provided)
+        console.log(`⚠️ Partial match: ${strongestMatch.matchedFields.join(', ')} out of ${providedFieldCount} fields`);
+        return this.generatePartialMatchReceipt(strongestMatch, userData, 'partial_fields');
+    }
+    
+    // Generate receipt for conflicted matches (data inconsistency detected)
+    async generateConflictedMatchReceipt(match, userData) {
+        const timestamp = new Date().toISOString();
+        
+        return {
+            provider: "MapleCEX",
+            query_hash: match.hash,
+            timestamp: timestamp,
+            result: {
+                match_found: false,
+                match_quality: "CONFLICTED",
+                matched_fields: match.matchedFields,
+                conflicted_fields: match.conflictingFields,
+                reason: "Data inconsistency detected - provided fields contain conflicting information"
+            },
+            compliance: {
+                query_id: `QUERY-${Date.now()}`,
+                auditable: true,
+                regulation_compliance: ["BSA", "KYC", "OFAC"],
+                security_flag: "POTENTIAL_FRAUD_INDICATOR"
+            },
+            signature: await sha256(JSON.stringify({ match: match.matchedFields, conflicts: match.conflictingFields, timestamp }))
+        };
+    }
+    
+    // Generate receipt for ambiguous matches (multiple users match different fields)  
+    async generateAmbiguousMatchReceipt(matches, userData) {
+        const timestamp = new Date().toISOString();
+        
+        return {
+            provider: "MapleCEX", 
+            query_hash: await sha256(JSON.stringify(userData)),
+            timestamp: timestamp,
+            result: {
+                match_found: false,
+                match_quality: "AMBIGUOUS",
+                potential_matches: matches.length,
+                reason: "Multiple users match different provided fields - unable to determine single identity"
+            },
+            compliance: {
+                query_id: `QUERY-${Date.now()}`,
+                auditable: true,
+                regulation_compliance: ["BSA", "KYC", "OFAC"],
+                security_flag: "CROSS_CONTAMINATION_DETECTED"
+            },
+            signature: await sha256(JSON.stringify({ ambiguous: true, count: matches.length, timestamp }))
+        };
+    }
+    
+    // Generate receipt for partial matches
+    async generatePartialMatchReceipt(match, userData, matchType) {
+        const timestamp = new Date().toISOString();
+        
+        return {
+            provider: "MapleCEX",
+            query_hash: match.hash,
+            timestamp: timestamp,
+            result: {
+                match_found: true,
+                match_quality: matchType.toUpperCase(),
+                risk_tags: match.riskData.risk_tags,
+                flagged_quarter: match.riskData.flagged_quarter,
+                matched_fields: match.matchedFields,
+                confidence_level: matchType === 'single_field' ? 'LOW' : 'MEDIUM'
+            },
+            compliance: {
+                query_id: `QUERY-${Date.now()}`,
+                auditable: true,
+                regulation_compliance: ["BSA", "KYC", "OFAC"]
+            },
+            signature: await sha256(JSON.stringify({ 
+                match: match.matchedFields, 
+                type: matchType, 
+                timestamp 
+            }))
+        };
     }
 
     // Generate a cryptographically signed proof receipt for matches
@@ -805,52 +995,128 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
         `;
         
         if (!proofReceipt.result.match_found) {
-            responseHTML = `
-                <div class="api-response no-match">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h4>🟢 Query Complete - ${isDecrypted ? 'User Clear' : encryptedPlaceholder}</h4>
-                        ${decryptButton}
+            // Handle different types of non-matches
+            const matchQuality = proofReceipt.result.match_quality;
+            
+            if (matchQuality === 'CONFLICTED') {
+                responseHTML = `
+                    <div class="api-response conflict-detected" style="border-left: 4px solid #dc3545;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h4>🚨 Data Conflict Detected</h4>
+                            ${decryptButton}
+                        </div>
+                        <p><strong>Searched Fields:</strong> ${userInfoText}</p>
+                        <p><strong>Matched Fields:</strong> ${isDecrypted ? proofReceipt.result.matched_fields?.join(', ') || 'None' : encryptedPlaceholder}</p>
+                        <p><strong>Conflicting Fields:</strong> ${isDecrypted ? proofReceipt.result.conflicted_fields?.join(', ') || 'None' : encryptedPlaceholder}</p>
+                        <p><strong>Result:</strong> ${isDecrypted ? proofReceipt.result.reason : encryptedPlaceholder}</p>
+                        <div style="margin-top: 0.75rem; padding: 0.5rem; background: #f8d7da; border-radius: 4px; font-size: 0.9rem;">
+                            <strong>⚠️ Security Alert:</strong> ${isDecrypted ? 'Potential fraud indicator - user data inconsistency detected' : encryptedPlaceholder}
+                        </div>
                     </div>
-                    <p><strong>Searched Fields:</strong> ${userInfoText}</p>
-                    <p><strong>Result:</strong> ${isDecrypted ? 'No risk flags found across partner network' : encryptedPlaceholder}</p>
-                    <div style="margin-top: 0.75rem; padding: 0.5rem; background: #d4edda; border-radius: 4px; font-size: 0.9rem;">
-                        <strong>🔐 Privacy Protected:</strong> Query processed without revealing user identity to partners
+                `;
+            } else if (matchQuality === 'AMBIGUOUS') {
+                responseHTML = `
+                    <div class="api-response ambiguous-match" style="border-left: 4px solid #fd7e14;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h4>⚠️ Multiple Identity Matches</h4>
+                            ${decryptButton}
+                        </div>
+                        <p><strong>Searched Fields:</strong> ${userInfoText}</p>
+                        <p><strong>Potential Matches:</strong> ${isDecrypted ? proofReceipt.result.potential_matches : encryptedPlaceholder}</p>
+                        <p><strong>Result:</strong> ${isDecrypted ? proofReceipt.result.reason : encryptedPlaceholder}</p>
+                        <div style="margin-top: 0.75rem; padding: 0.5rem; background: #fff3cd; border-radius: 4px; font-size: 0.9rem;">
+                            <strong>🚨 Cross-Contamination Alert:</strong> ${isDecrypted ? 'Multiple users match different provided fields' : encryptedPlaceholder}
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
+            } else {
+                // Standard no-match case
+                responseHTML = `
+                    <div class="api-response no-match">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h4>🟢 Query Complete - ${isDecrypted ? 'User Clear' : encryptedPlaceholder}</h4>
+                            ${decryptButton}
+                        </div>
+                        <p><strong>Searched Fields:</strong> ${userInfoText}</p>
+                        <p><strong>Result:</strong> ${isDecrypted ? 'No risk flags found across partner network' : encryptedPlaceholder}</p>
+                        <div style="margin-top: 0.75rem; padding: 0.5rem; background: #d4edda; border-radius: 4px; font-size: 0.9rem;">
+                            <strong>🔐 Privacy Protected:</strong> Query processed without revealing user identity to partners
+                        </div>
+                    </div>
+                `;
+            }
         } else {
-            // Handle risk alert case
-            const riskLevel = proofReceipt.sunscreen_analysis.risk_level;
-            const isExtreme = riskLevel === 'EXTREME';
-            const isHigh = riskLevel === 'HIGH';
-            const riskColor = isExtreme ? '#dc3545' : isHigh ? '#fd7e14' : '#ffc107';
+            // Handle matches - check for different match qualities
+            const matchQuality = proofReceipt.result.match_quality;
+            const confidenceLevel = proofReceipt.result.confidence_level;
             
-            const matchedFields = proofReceipt.result.matched_fields || (proofReceipt.result.match_field ? [proofReceipt.result.match_field] : []);
-            const matchedFieldsText = matchedFields.length > 0 ? matchedFields.join(', ') : 'No matches detected';
-            
-            responseHTML = `
-                <div class="api-response" style="border-left: 4px solid ${riskColor};">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h4>⚠️ Risk Alert</h4>
-                        ${decryptButton}
+            if (matchQuality === 'SINGLE_FIELD' || matchQuality === 'PARTIAL_FIELDS') {
+                // Handle partial matches with confidence indicators
+                const confidenceColor = confidenceLevel === 'LOW' ? '#ffc107' : confidenceLevel === 'MEDIUM' ? '#fd7e14' : '#dc3545';
+                const matchedFields = proofReceipt.result.matched_fields || [];
+                const matchedFieldsText = matchedFields.length > 0 ? matchedFields.join(', ') : 'None';
+                
+                responseHTML = `
+                    <div class="api-response partial-match" style="border-left: 4px solid ${confidenceColor};">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h4>⚠️ Partial Match - ${confidenceLevel} Confidence</h4>
+                            ${decryptButton}
+                        </div>
+                        <p><strong>Searched Fields:</strong> ${userInfoText}</p>
+                        <p><strong>Matched Fields:</strong> ${isDecrypted ? matchedFieldsText : encryptedPlaceholder}</p>
+                        <p><strong>Match Type:</strong> ${isDecrypted ? matchQuality.replace('_', ' ').toLowerCase() : encryptedPlaceholder}</p>
+                        <p><strong>Flagged Quarter:</strong> ${isDecrypted ? proofReceipt.result.flagged_quarter : encryptedPlaceholder}</p>
+        
+                        <div style="margin: 0.75rem 0;">
+                            <strong>Risk Flags:</strong><br/>
+                            ${isDecrypted ? 
+                                proofReceipt.result.risk_tags.map(flag => `<span style="background: ${confidenceColor}; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8rem; margin: 2px;">${flag}</span>`).join('') :
+                                `<span style="background: #6c757d; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8rem; margin: 2px;">${encryptedPlaceholder}</span>`
+                            }
+                        </div>
+        
+                        <div style="margin-top: 0.75rem; padding: 0.5rem; background: #fff3cd; border-radius: 4px; font-size: 0.9rem;">
+                            <strong>⚠️ Partial Match Alert:</strong> ${isDecrypted ? `Only ${matchedFields.length} field(s) matched - consider additional verification` : encryptedPlaceholder}
+                        </div>
+                        <div style="margin-top: 0.5rem; padding: 0.5rem; background: #e7f3ff; border-radius: 4px; font-size: 0.9rem;">
+                            <strong>🔐 Privacy Protected:</strong> Partner never learned you were investigating this user
+                        </div>
                     </div>
-                    <p><strong>Searched Fields:</strong> ${userInfoText}</p>
-                    <p><strong>Flagged Quarter:</strong> ${isDecrypted ? proofReceipt.result.flagged_quarter : encryptedPlaceholder}</p>
-                    <p><strong>Matched Fields:</strong> ${isDecrypted ? matchedFieldsText : encryptedPlaceholder}</p>
+                `;
+            } else {
+                // Handle full confidence matches
+                const riskLevel = proofReceipt.sunscreen_analysis?.risk_level || 'MEDIUM';
+                const isExtreme = riskLevel === 'EXTREME';
+                const isHigh = riskLevel === 'HIGH';
+                const riskColor = isExtreme ? '#dc3545' : isHigh ? '#fd7e14' : '#ffc107';
+                
+                const matchedFields = proofReceipt.result.matched_fields || (proofReceipt.result.match_field ? [proofReceipt.result.match_field] : []);
+                const matchedFieldsText = matchedFields.length > 0 ? matchedFields.join(', ') : 'No matches detected';
+                
+                responseHTML = `
+                    <div class="api-response" style="border-left: 4px solid ${riskColor};">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h4>⚠️ Risk Alert</h4>
+                            ${decryptButton}
+                        </div>
+                        <p><strong>Searched Fields:</strong> ${userInfoText}</p>
+                        <p><strong>Flagged Quarter:</strong> ${isDecrypted ? proofReceipt.result.flagged_quarter : encryptedPlaceholder}</p>
+                        <p><strong>Matched Fields:</strong> ${isDecrypted ? matchedFieldsText : encryptedPlaceholder}</p>
 
-                    <div style="margin: 0.75rem 0;">
-                        <strong>Risk Flags:</strong><br/>
-                        ${isDecrypted ? 
-                            proofReceipt.result.risk_tags.map(flag => `<span style="background: #dc3545; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8rem; margin: 2px;">${flag}</span>`).join('') :
-                            `<span style="background: #6c757d; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8rem; margin: 2px;">${encryptedPlaceholder}</span>`
-                        }
-                    </div>
+                        <div style="margin: 0.75rem 0;">
+                            <strong>Risk Flags:</strong><br/>
+                            ${isDecrypted ? 
+                                proofReceipt.result.risk_tags.map(flag => `<span style="background: #dc3545; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8rem; margin: 2px;">${flag}</span>`).join('') :
+                                `<span style="background: #6c757d; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8rem; margin: 2px;">${encryptedPlaceholder}</span>`
+                            }
+                        </div>
 
-                    <div style="margin-top: 0.75rem; padding: 0.5rem; background: #fff3cd; border-radius: 4px; font-size: 0.9rem;">
-                        <strong>🔐 Privacy Protected:</strong> Partner never learned you were investigating this user
+                        <div style="margin-top: 0.75rem; padding: 0.5rem; background: #fff3cd; border-radius: 4px; font-size: 0.9rem;">
+                            <strong>🔐 Privacy Protected:</strong> Partner never learned you were investigating this user
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
+            }
         }
 
         window.resultsPanel.innerHTML = responseHTML;

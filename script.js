@@ -1254,15 +1254,44 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
                                  <h5>🔓 Decrypted Query Results:</h5>
                                  <div class="audit-result-content">
                                      <p><strong>Data Source Exchange:</strong> ${entry.original_response.provider || 'MapleCEX'}</p>
-                                     ${entry.original_response.result.match_found ? 
-                                         `<p><strong>Result:</strong> Risk Alert - User flagged</p>
-                                          <p><strong>Risk Tags:</strong> ${entry.original_response.result.risk_tags.join(', ')}</p>
-                                          <p><strong>Flagged Quarter:</strong> ${entry.original_response.result.flagged_quarter}</p>
-                                          <p><strong>Matched Fields:</strong> ${entry.original_response.result.matched_fields ? entry.original_response.result.matched_fields.join(', ') : entry.original_response.result.match_field || 'N/A'}</p>
-                                          <p><strong>Provider Query ID:</strong> ${entry.original_response.compliance?.query_id || 'N/A'}</p>` :
-                                         `<p><strong>Result:</strong> User Clear - No risk flags found</p>
-                                          <p><strong>Network Coverage:</strong> Partner exchange network queried</p>`
-                                     }
+                                     ${(() => {
+                                         const result = entry.original_response.result;
+                                         const matchQuality = result.match_quality;
+                                         
+                                         if (result.match_found) {
+                                             // Handle actual matches (with or without partial quality)
+                                             const riskTags = result.risk_tags ? result.risk_tags.join(', ') : 'N/A';
+                                             const matchedFields = result.matched_fields ? result.matched_fields.join(', ') : result.match_field || 'N/A';
+                                             const confidenceLevel = result.confidence_level ? ` (${result.confidence_level} confidence)` : '';
+                                             const matchType = matchQuality && (matchQuality === 'SINGLE_FIELD' || matchQuality === 'PARTIAL_FIELDS') ? ` - ${matchQuality.replace('_', ' ').toLowerCase()}` : '';
+                                             
+                                             return `<p><strong>Result:</strong> Risk Alert - User flagged${matchType}${confidenceLevel}</p>
+                                                     <p><strong>Risk Tags:</strong> ${riskTags}</p>
+                                                     <p><strong>Flagged Quarter:</strong> ${result.flagged_quarter || 'N/A'}</p>
+                                                     <p><strong>Matched Fields:</strong> ${matchedFields}</p>
+                                                     <p><strong>Provider Query ID:</strong> ${entry.original_response.compliance?.query_id || 'N/A'}</p>`;
+                                         } else if (matchQuality === 'CONFLICTED') {
+                                             // Handle data conflicts
+                                             const matchedFields = result.matched_fields ? result.matched_fields.join(', ') : 'None';
+                                             const conflictedFields = result.conflicted_fields ? result.conflicted_fields.join(', ') : 'None';
+                                             
+                                             return `<p><strong>Result:</strong> ❌ Data Conflict Detected</p>
+                                                     <p><strong>Matched Fields:</strong> ${matchedFields}</p>
+                                                     <p><strong>Conflicting Fields:</strong> ${conflictedFields}</p>
+                                                     <p><strong>Security Flag:</strong> ${entry.original_response.compliance?.security_flag || 'POTENTIAL_FRAUD_INDICATOR'}</p>
+                                                     <p><strong>Reason:</strong> ${result.reason || 'Data inconsistency detected'}</p>`;
+                                         } else if (matchQuality === 'AMBIGUOUS') {
+                                             // Handle ambiguous matches (cross-contamination)
+                                             return `<p><strong>Result:</strong> ⚠️ Multiple Identity Matches Detected</p>
+                                                     <p><strong>Potential Matches:</strong> ${result.potential_matches || 'Multiple'}</p>
+                                                     <p><strong>Security Flag:</strong> ${entry.original_response.compliance?.security_flag || 'CROSS_CONTAMINATION_DETECTED'}</p>
+                                                     <p><strong>Reason:</strong> ${result.reason || 'Multiple users match different provided fields'}</p>`;
+                                         } else {
+                                             // Handle genuine "User Clear" cases
+                                             return `<p><strong>Result:</strong> User Clear - No risk flags found</p>
+                                                     <p><strong>Network Coverage:</strong> Partner exchange network queried</p>`;
+                                         }
+                                     })()}
                                      <p><strong>Response Timestamp:</strong> ${entry.original_response.timestamp}</p>
                                  </div>
                              </div>

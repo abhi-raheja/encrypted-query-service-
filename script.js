@@ -1070,7 +1070,7 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
                         <div style="margin: 0.75rem 0;">
                             <strong>Risk Flags:</strong><br/>
                             ${isDecrypted ? 
-                                proofReceipt.result.risk_tags.map(flag => `<span style="background: ${confidenceColor}; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8rem; margin: 2px;">${flag}</span>`).join('') :
+                                proofReceipt.result.risk_tags.map(flag => `<span style="background: #dc3545; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8rem; margin: 2px;">${flag}</span>`).join('') :
                                 `<span style="background: #6c757d; color: white; padding: 3px 8px; border-radius: 3px; font-size: 0.8rem; margin: 2px;">${encryptedPlaceholder}</span>`
                             }
                         </div>

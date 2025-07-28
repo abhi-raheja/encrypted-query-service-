@@ -41,9 +41,26 @@ body {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    color: #ffffff;
+}
+
+.logo-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.logo-main {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #ffffff;
+    line-height: 1;
+}
+
+.logo-sub {
+    font-size: 0.75rem;
+    font-weight: 400;
+    opacity: 0.8;
+    line-height: 1;
 }
 
 .logo-icon {

@@ -3,228 +3,270 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sunscreen Demo - Project Chimera</title>
+    <title>Sunscreen Console - Risk Intelligence Platform</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <h1>Sunscreen Demo</h1>
-        <p>Private Data Coordination for Crypto Exchanges</p>
-    </header>
-
-    <main class="demo-container">
-        <!-- View Selector -->
-        <div class="view-selector">
-            <h2>Demo Perspective:</h2>
-            <div class="view-toggle-container">
-                <span class="view-label">CoinFlex (Querying)</span>
-                <label class="view-toggle">
-                    <input type="checkbox" id="viewToggle">
-                    <span class="toggle-slider"></span>
-                </label>
-                <span class="view-label">Maple CEX (Partner)</span>
-            </div>
-            <p class="view-description">
-                <span id="viewDescription">You are CoinFlex onboarding a new user. Check if they're flagged by partner exchanges.</span>
-            </p>
-        </div>
-
-        <!-- CoinFlex View -->
-        <div id="coinflexView" class="exchange-view active">
-            <div class="layout-wrapper">
-                <!-- Input Section -->
-                <div class="exchange-column main-column">
-                    <h2>🏦 CoinFlex - User Onboarding</h2>
-                    <div class="input-section">
-                        <h3>User Information to Check:</h3>
-                        <div class="input-grid">
-                            <div class="input-field">
-                                <label for="userEmail">Email Address:</label>
-                                <input type="email" id="userEmail" placeholder="e.g., alex.chen@gmail.com" />
-                            </div>
-                            <div class="input-field">
-                                <label for="userPhone">Contact Number:</label>
-                                <input type="tel" id="userPhone" placeholder="e.g., +1-555-0123" />
-                            </div>
-                            <div class="input-field">
-                                <label for="userCountry">Residence Country:</label>
-                                <input type="text" id="userCountry" placeholder="e.g., United States" />
-                            </div>
-                            <div class="input-field">
-                                <label for="docType">Identity Document Type:</label>
-                                <select id="docType">
-                                    <option value="">Select document type</option>
-                                    <option value="passport">Passport</option>
-                                    <option value="drivers_license">Driver's License</option>
-                                    <option value="national_id">National ID</option>
-                                    <option value="ssn">Social Security Number</option>
-                                </select>
-                            </div>
-                            <div class="input-field">
-                                <label for="docNumber">Document Number:</label>
-                                <input type="text" id="docNumber" placeholder="e.g., A12345678" />
-                            </div>
-                        </div>
-                        <button id="checkButton">Check User with Sunscreen</button>
-                        <p class="input-note">Fill in any available fields - partial matches are supported</p>
-                    </div>
-                    <div class="results-section">
-                        <h3>Sunscreen Query Results:</h3>
-                        <div id="resultsPanel" class="results-panel">
-                            <p class="placeholder">No queries yet. Enter a user email above to check against partner network.</p>
-                        </div>
-                        
-                        <div class="audit-section">
-                            <button onclick="openAuditModal()" class="audit-log-btn">
-                                📋 Regulatory Audit Log
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- API Visual -->
-                <div class="api-column">
-                    <div id="sunscreenAPI" class="api-box">
-                        <h3>Sunscreen API</h3>
-                        <div class="api-content">
-                            <div class="api-icon">🔒</div>
-                            <p>Private Data<br/>Coordination</p>
-                        </div>
-                        <div id="apiStatus" class="api-status">Ready</div>
-                    </div>
+    <div class="dashboard-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">🔒</div>
+                    <span>Sunscreen Console</span>
                 </div>
             </div>
-        </div>
+            <div class="nav-menu">
+                <a href="#" class="nav-item active">
+                    <span class="nav-icon">🔍</span>
+                    <span>Query Dashboard</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-icon">📊</span>
+                    <span>Analytics</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-icon">🔐</span>
+                    <span>Security Audit</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-icon">⚙️</span>
+                    <span>Configuration</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-icon">📋</span>
+                    <span>Compliance</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-icon">🏢</span>
+                    <span>Partner Network</span>
+                </a>
+            </div>
+        </nav>
 
-        <!-- Maple CEX View -->
-        <div id="mapleCEXView" class="exchange-view hidden">
-            <div class="layout-wrapper">
-                <div class="exchange-column main-column">
-                    <h2>🏛️ Maple CEX - Internal Risk Database</h2>
-                    <div class="partner-info">
-                        <p><strong>Your Role:</strong> You are Maple CEX. Your risk data helps other exchanges detect bad actors.</p>
-                        <p><strong>Privacy Protection:</strong> Partners query your data without seeing raw details or knowing who they're investigating.</p>
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <div class="top-header">
+                <div class="page-title">Risk Intelligence Query System</div>
+                <div class="user-info">
+                    <span class="status-badge">Demo Mode</span>
+                    <span>Exchange Demo User</span>
+                </div>
+            </div>
+
+            <!-- Content Wrapper -->
+            <div class="content-wrapper">
+                <!-- View Selector -->
+                <div class="view-selector">
+                    <h2>📍 Exchange Perspective:</h2>
+                    <div class="view-toggle-container">
+                        <span class="view-label">🏦 CoinFlex (Querying)</span>
+                        <label class="view-toggle">
+                            <input type="checkbox" id="viewToggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="view-label">🏛️ Maple CEX (Partner)</span>
                     </div>
-                    
-                    <!-- Query Audit Dashboard -->
-                    <div class="query-dashboard-section">
-                        <h3>📊 Query Audit Dashboard</h3>
-                        <div class="dashboard-stats">
-                            <div class="stat-card">
-                                <div class="stat-number" id="totalQueries">0</div>
-                                <div class="stat-label">Total Queries Received</div>
+                    <p class="view-description">
+                        <span id="viewDescription">You are CoinFlex onboarding a new user. Check if they're flagged by partner exchanges.</span>
+                    </p>
+                </div>
+
+                <!-- CoinFlex View -->
+                <div id="coinflexView" class="exchange-view active">
+                    <div class="layout-wrapper">
+                        <!-- Input Section -->
+                        <div class="exchange-column main-column">
+                            <h2>🏦 CoinFlex Exchange - User Verification</h2>
+                            <div class="input-section">
+                                <h3>📝 Customer Information</h3>
+                                <div class="input-grid">
+                                    <div class="input-field">
+                                        <label for="userEmail">Email Address</label>
+                                        <input type="email" id="userEmail" placeholder="customer@example.com" />
+                                    </div>
+                                    <div class="input-field">
+                                        <label for="userPhone">Phone Number</label>
+                                        <input type="tel" id="userPhone" placeholder="+1-555-0123" />
+                                    </div>
+                                    <div class="input-field">
+                                        <label for="userCountry">Country of Residence</label>
+                                        <input type="text" id="userCountry" placeholder="e.g., United States" />
+                                    </div>
+                                    <div class="input-field">
+                                        <label for="docType">Identity Document Type</label>
+                                        <select id="docType">
+                                            <option value="">Select document type</option>
+                                            <option value="passport">Passport</option>
+                                            <option value="drivers_license">Driver's License</option>
+                                            <option value="national_id">National ID</option>
+                                            <option value="ssn">Social Security Number</option>
+                                        </select>
+                                    </div>
+                                    <div class="input-field">
+                                        <label for="docNumber">Document Number</label>
+                                        <input type="text" id="docNumber" placeholder="e.g., A12345678" />
+                                    </div>
+                                </div>
+                                <button id="checkButton">🔍 Query Partner Network</button>
+                                <p class="input-note">Complete any available fields - system supports partial matching</p>
                             </div>
-                        </div>
-                        
-                        <div class="query-log-section">
-                            <h4>🔍 Recent Query Log</h4>
-                            <div id="queryLogDisplay" class="query-log-display">
-                                <div class="no-queries">
-                                    <p>No queries yet. Switch to CoinFlex view and try a search!</p>
+                            <div class="results-section">
+                                <h3>📊 Risk Assessment Results</h3>
+                                <div id="resultsPanel" class="results-panel">
+                                    <p class="placeholder">No queries performed yet. Enter customer information above to check against partner risk database.</p>
+                                </div>
+                                
+                                <div class="audit-section">
+                                    <button onclick="openAuditModal()" class="audit-log-btn">
+                                        📋 Regulatory Audit Trail
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="database-section">
-                        <h3>Your Internal Risk Database:</h3>
-                        <div id="partnerDataDisplay" class="partner-data-display">
-                            <!-- Partner data will be shown here -->
+
+                        <!-- API Visual -->
+                        <div class="api-column">
+                            <div id="sunscreenAPI" class="api-box">
+                                <h3>🛡️ Sunscreen API</h3>
+                                <div class="api-content">
+                                    <div class="api-icon">🔒</div>
+                                    <p>Privacy-Preserving<br/>Risk Intelligence</p>
+                                </div>
+                                <div id="apiStatus" class="api-status">Ready</div>
+                            </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Maple CEX View -->
+                <div id="mapleCEXView" class="exchange-view hidden">
+                    <div class="layout-wrapper">
+                        <div class="exchange-column main-column">
+                            <h2>🏛️ Maple CEX - Partner Risk Database</h2>
+                            <div class="partner-info">
+                                <p><strong>🎯 Your Role:</strong> You operate a partner exchange providing risk intelligence to the network.</p>
+                                <p><strong>🔐 Privacy Protection:</strong> Partners query your data without accessing raw details or learning investigation targets.</p>
+                            </div>
+                            
+                            <!-- Query Audit Dashboard -->
+                            <div class="query-dashboard-section">
+                                <h3>📊 Real-Time Query Dashboard</h3>
+                                <div class="dashboard-stats">
+                                    <div class="stat-card">
+                                        <div class="stat-number" id="totalQueries">0</div>
+                                        <div class="stat-label">Queries Processed</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="query-log-section">
+                                    <h4>🔍 Incoming Query Activity</h4>
+                                    <div id="queryLogDisplay" class="query-log-display">
+                                        <div class="no-queries">
+                                            <p>No incoming queries yet. Switch to CoinFlex view to generate some activity!</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="database-section">
+                                <h3>🗃️ Your Internal Risk Database</h3>
+                                <div id="partnerDataDisplay" class="partner-data-display">
+                                    <!-- Partner data will be shown here -->
+                                </div>
+                            </div>
+                            
+                            <div class="privacy-notice">
+                                <h4>🛡️ Privacy & Security Guarantee</h4>
+                                <p><strong>When partners query through Sunscreen:</strong></p>
+                                <ul>
+                                    <li>✅ Partners never learn who you're investigating</li>
+                                    <li>✅ Only minimal risk flags and quarterly dates are shared</li>
+                                    <li>✅ Your detailed case files remain completely private</li>
+                                    <li>✅ Complete cryptographic audit trail for compliance</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Audit Modal -->
+                <div id="auditModal" class="audit-modal">
+                    <div class="audit-modal-content">
+                        <div class="audit-modal-header">
+                            <h3>🏛️ Regulatory Compliance Audit Log</h3>
+                            <span class="audit-modal-close" onclick="closeAuditModal()">&times;</span>
+                        </div>
+                        <div class="audit-modal-body">
+                            <div class="audit-compliance-info">
+                                <p><strong>📅 Data Retention:</strong> 7 years as required by financial regulations</p>
+                                <p><strong>🔐 Cryptographic Verification:</strong> All queries signed and timestamped for tamper-evidence</p>
+                            </div>
+                            <div id="auditLogContainer" class="audit-log-container">
+                                <!-- Audit entries will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Demo Instructions -->
+                <div class="demo-instructions">
+                    <h3>🎯 How to Navigate This Demo</h3>
                     
-                    <div class="privacy-notice">
-                        <h4>🔐 Privacy Guarantee:</h4>
-                        <p>When CoinFlex queries through Sunscreen:</p>
-                        <ul>
-                            <li>You never see who they're investigating</li>
-                            <li>They only learn risk flags and quarterly dates</li>
-                            <li>Your detailed internal data stays private</li>
-                        </ul>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                        <div style="background: #e7f3ff; padding: 1rem; border-radius: 6px; border-left: 4px solid #3b82f6;">
+                            <strong>🏦 CoinFlex Perspective:</strong><br/>
+                            <small>Experience onboarding a customer and checking risk against partner networks</small>
+                        </div>
+                        <div style="background: #f3e5f5; padding: 1rem; border-radius: 6px; border-left: 4px solid #7c3aed;">
+                            <strong>🏛️ Maple CEX Perspective:</strong><br/>
+                            <small>View the partner exchange dashboard and internal risk management system</small>
+                        </div>
                     </div>
-                </div>
+
+                    <h4>🧪 Test Customer Scenarios</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem;">
+                        <div style="background: #fee2e2; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #dc2626;">
+                            <strong>🚨 High Risk Customer:</strong><br/>
+                            <small><strong>Email:</strong> alex.chen@gmail.com<br/>
+                            <strong>Phone:</strong> +1-555-0187<br/>
+                            <strong>Country:</strong> United States<br/>
+                            <strong>Doc:</strong> drivers_license DL789456123</small>
+                        </div>
+                        <div style="background: #fef3c7; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #f59e0b;">
+                            <strong>⚠️ Sanctions List:</strong><br/>
+                            <small><strong>Email:</strong> crypto.trader2024@protonmail.com<br/>
+                            <strong>Phone:</strong> +44-20-7946-0958<br/>
+                            <strong>Country:</strong> United Kingdom<br/>
+                            <strong>Doc:</strong> passport GBR123456789</small>
+                        </div>
+                        <div style="background: #dbeafe; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #3b82f6;">
+                            <strong>🔍 Under Review:</strong><br/>
+                            <small><strong>Email:</strong> fraud-user-1@email.com<br/>
+                            <strong>Phone:</strong> +1-555-0199<br/>
+                            <strong>Country:</strong> Canada<br/>
+                            <strong>Doc:</strong> national_id CAN987654321</small>
+                        </div>
+                        <div style="background: #dcfce7; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #16a34a;">
+                            <strong>✅ Clean Customer:</strong><br/>
+                            <small>Try any information not listed above to see a clean result</small>
+                        </div>
                     </div>
-    </div>
 
-    <!-- Audit Modal -->
-    <div id="auditModal" class="audit-modal">
-        <div class="audit-modal-content">
-            <div class="audit-modal-header">
-                <h3>🏛️ Regulatory Audit Log - CoinFlex Exchange</h3>
-                <span class="audit-modal-close" onclick="closeAuditModal()">&times;</span>
-            </div>
-            <div class="audit-modal-body">
-                <div class="audit-compliance-info">
-                    <p><strong>Data Retention:</strong> 7 years as per regulatory requirements</p>
-                </div>
-                <div id="auditLogContainer" class="audit-log-container">
-                    <!-- Audit entries will be populated here -->
+                    <h4>🔄 Demo Workflow</h4>
+                    <ol style="line-height: 1.6;">
+                        <li><strong>Start in CoinFlex view</strong> - You're onboarding a new customer</li>
+                        <li><strong>Enter customer information</strong> - Complete any available fields (email, phone, country, documents)</li>
+                        <li><strong>Query the network</strong> - See how Sunscreen coordinates with partner exchanges</li>
+                        <li><strong>Review risk assessment</strong> - Analyze results and matched data points</li>
+                        <li><strong>Switch to Maple CEX view</strong> - Experience the partner exchange perspective</li>
+                        <li><strong>Explore audit capabilities</strong> - Check regulatory compliance features</li>
+                    </ol>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
-
-    <!-- Demo Instructions -->
-        <div class="demo-instructions">
-            <h3>🎯 How to Use This Demo:</h3>
-            
-                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-                 <div style="background: #e7f3ff; padding: 1rem; border-radius: 6px; border-left: 4px solid #28a745;">
-                     <strong>👤 CoinFlex View (Left):</strong><br/>
-                     <small>Experience being an exchange checking a new user against partner networks</small>
-                 </div>
-                 <div style="background: #f3e5f5; padding: 1rem; border-radius: 6px; border-left: 4px solid #6f42c1;">
-                     <strong>🏛️ Maple CEX View (Right):</strong><br/>
-                     <small>See the partner exchange perspective and their internal risk database</small>
-                 </div>
-             </div>
-
-                         <h4>🧪 Test User Scenarios:</h4>
-             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem;">
-                 <div style="background: #f8d7da; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #dc3545;">
-                     <strong>High Risk User:</strong><br/>
-                     <small><strong>Email:</strong> alex.chen@gmail.com<br/>
-                     <strong>Phone:</strong> +1-555-0187<br/>
-                     <strong>Country:</strong> United States<br/>
-                     <strong>Doc:</strong> drivers_license DL789456123</small>
-                 </div>
-                 <div style="background: #fff3cd; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #ffc107;">
-                     <strong>Sanctions List User:</strong><br/>
-                     <small><strong>Email:</strong> crypto.trader2024@protonmail.com<br/>
-                     <strong>Phone:</strong> +44-20-7946-0958<br/>
-                     <strong>Country:</strong> United Kingdom<br/>
-                     <strong>Doc:</strong> passport GBR123456789</small>
-                 </div>
-                 <div style="background: #e7f3ff; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #0066cc;">
-                     <strong>Under Review User:</strong><br/>
-                     <small><strong>Email:</strong> fraud-user-1@email.com<br/>
-                     <strong>Phone:</strong> +1-555-0199<br/>
-                     <strong>Country:</strong> Canada<br/>
-                     <strong>Doc:</strong> national_id CAN987654321</small>
-                 </div>
-                 <div style="background: #d4edda; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #28a745;">
-                     <strong>Clean User:</strong><br/>
-                     <small>Try any email not listed above, or partial matches with different fields</small>
-                 </div>
-             </div>
-
-                         <h4>🔄 Demo Steps:</h4>
-             <ol style="line-height: 1.6;">
-                 <li><strong>Start in CoinFlex view</strong> - You're onboarding a new user</li>
-                 <li><strong>Fill in user information</strong> - Try any combination of fields (email, phone, country, document)</li>
-                 <li><strong>See multi-field matching</strong> - System finds matches across different data points</li>
-                 <li><strong>Notice matched fields</strong> - Shows exactly which fields triggered the match</li>
-                 <li><strong>Toggle to Maple CEX view</strong> to see comprehensive user profiles and audit dashboard</li>
-                 <li><strong>Experience the "aha!" moment</strong> - Rich internal data vs. minimal external sharing</li>
-             </ol>
-        </div>
-
-        <!-- Test Results (Development Only) -->
-        <div id="test-area" class="test-area">
-            <h3>Development Tests:</h3>
-            <p>Open browser console to see detailed test results</p>
-        </div>
-    </main>
 
     <script src="script.js"></script>
 </body>

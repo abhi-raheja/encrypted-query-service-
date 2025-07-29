@@ -9,7 +9,7 @@
 <body>
     <div class="dashboard-container">
         <!-- Sidebar Navigation -->
-        <nav class="sidebar">
+        <nav class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
                     <div class="logo-icon">🔒</div>
@@ -18,29 +18,32 @@
                         <span class="logo-sub">The FHE Company</span>
                     </div>
                 </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <span class="toggle-icon">◀</span>
+                </button>
             </div>
             <div class="nav-menu">
-                <a href="#" class="nav-item active">
+                <a href="#" class="nav-item active" data-tooltip="Query Dashboard">
                     <span class="nav-icon">🔍</span>
                     <span>Query Dashboard</span>
                 </a>
-                <a href="#" class="nav-item">
+                <a href="#" class="nav-item" data-tooltip="Analytics">
                     <span class="nav-icon">📊</span>
                     <span>Analytics</span>
                 </a>
-                <a href="#" class="nav-item">
+                <a href="#" class="nav-item" data-tooltip="Security Audit">
                     <span class="nav-icon">🔐</span>
                     <span>Security Audit</span>
                 </a>
-                <a href="#" class="nav-item">
+                <a href="#" class="nav-item" data-tooltip="Configuration">
                     <span class="nav-icon">⚙️</span>
                     <span>Configuration</span>
                 </a>
-                <a href="#" class="nav-item">
+                <a href="#" class="nav-item" data-tooltip="Compliance">
                     <span class="nav-icon">📋</span>
                     <span>Compliance</span>
                 </a>
-                <a href="#" class="nav-item">
+                <a href="#" class="nav-item" data-tooltip="Partner Network">
                     <span class="nav-icon">🏢</span>
                     <span>Partner Network</span>
                 </a>

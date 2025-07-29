@@ -3,6 +3,28 @@
 // Using Industry-Standard SHA-256 Hashing & Cryptographic Proof Receipts
 // ========================================
 
+// ===== SIDEBAR TOGGLE FUNCTIONALITY =====
+function initializeSidebarToggle() {
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    
+    if (sidebarToggle && sidebar) {
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            
+            // Save sidebar state to localStorage
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            localStorage.setItem('sidebarCollapsed', isCollapsed);
+        });
+        
+        // Restore sidebar state from localStorage
+        const savedState = localStorage.getItem('sidebarCollapsed');
+        if (savedState === 'true') {
+            sidebar.classList.add('collapsed');
+        }
+    }
+}
+
 // ===== SHA-256 HELPER FUNCTION =====
 // Modern browsers can do this securely. This simulates what an exchange's backend would do.
 async function sha256(message) {
@@ -221,6 +243,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('🚀 Sunscreen Demo - Project Chimera');
     console.log('📋 Industry-Standard Cryptographic Proof System');
     console.log('===============================================\n');
+    
+    // Initialize sidebar toggle
+    initializeSidebarToggle();
     
     // Run core logic tests (now async)
     console.log('Running Cryptographic Proof System Tests:');

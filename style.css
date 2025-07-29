@@ -86,26 +86,56 @@ body {
     color: #ffffff;
     cursor: pointer;
     padding: 0.5rem;
-    border-radius: 4px;
+    border-radius: 6px;
     transition: all 0.2s ease;
-    font-size: 1rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
 }
 
 .sidebar-toggle:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.15);
 }
 
 .toggle-icon {
-    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    transition: all 0.3s ease;
 }
 
-.sidebar.collapsed .toggle-icon {
-    transform: rotate(180deg);
+.hamburger-line {
+    width: 18px;
+    height: 2px;
+    background: #ffffff;
+    border-radius: 1px;
+    transition: all 0.3s ease;
+}
+
+/* Collapsed state - transform to X */
+.sidebar.collapsed .hamburger-line:nth-child(1) {
+    transform: translateY(5px) rotate(45deg);
+}
+
+.sidebar.collapsed .hamburger-line:nth-child(2) {
+    opacity: 0;
+}
+
+.sidebar.collapsed .hamburger-line:nth-child(3) {
+    transform: translateY(-5px) rotate(-45deg);
+}
+
+/* Make toggle button more prominent when sidebar is collapsed */
+.sidebar.collapsed .sidebar-toggle {
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar.collapsed .sidebar-toggle:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
 }
 
 .logo-icon {

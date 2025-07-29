@@ -9,8 +9,17 @@ function initializeSidebarToggle() {
     const sidebarToggle = document.getElementById('sidebarToggle');
     
     if (sidebarToggle && sidebar) {
+        // Function to update tooltip text
+        function updateTooltip() {
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            sidebarToggle.title = isCollapsed ? 'Expand sidebar' : 'Collapse sidebar';
+        }
+        
         sidebarToggle.addEventListener('click', function() {
             sidebar.classList.toggle('collapsed');
+            
+            // Update tooltip text
+            updateTooltip();
             
             // Save sidebar state to localStorage
             const isCollapsed = sidebar.classList.contains('collapsed');
@@ -22,6 +31,9 @@ function initializeSidebarToggle() {
         if (savedState === 'true') {
             sidebar.classList.add('collapsed');
         }
+        
+        // Set initial tooltip
+        updateTooltip();
     }
 }
 

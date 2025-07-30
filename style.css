@@ -44,6 +44,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative;
 }
 
 .logo {
@@ -127,15 +128,22 @@ body {
     transform: translateY(-5px) rotate(-45deg);
 }
 
-/* Make toggle button more prominent when sidebar is collapsed */
+/* Position toggle button at edge when sidebar is collapsed */
 .sidebar.collapsed .sidebar-toggle {
-    margin: 0 auto;
-    background: rgba(255, 255, 255, 0.1);
+    position: absolute;
+    right: -18px;
+    top: 1.5rem;
+    background: rgba(255, 255, 255, 0.95);
+    color: #003d1f;
+    border: 2px solid #003d1f;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 1000;
 }
 
 .sidebar.collapsed .sidebar-toggle:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: #ffffff;
     transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
 .logo-icon {
@@ -219,6 +227,31 @@ body {
     background: #005a23;
     color: #ffffff;
     border-left-color: #4a9e63;
+}
+
+.nav-item.disabled {
+    color: #8a8a8a;
+    cursor: not-allowed;
+    opacity: 0.6;
+    position: relative;
+}
+
+.nav-item.disabled:hover {
+    background: transparent;
+    color: #8a8a8a;
+    border-left-color: transparent;
+}
+
+.nav-item.disabled .coming-soon {
+    font-size: 0.7rem;
+    color: #999;
+    font-style: italic;
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+.sidebar.collapsed .nav-item.disabled .coming-soon {
+    display: none;
 }
 
 .nav-icon {

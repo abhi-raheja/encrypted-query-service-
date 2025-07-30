@@ -81,69 +81,30 @@ body {
     line-height: 1;
 }
 
-.sidebar-toggle {
-    background: transparent;
-    border: none;
-    color: #ffffff;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
+/* Hover-based sidebar expansion */
+.sidebar.collapsed:hover {
+    width: 240px;
 }
 
-.sidebar-toggle:hover {
-    background: rgba(255, 255, 255, 0.15);
+.sidebar.collapsed:hover .logo-text {
+    opacity: 1;
+    width: auto;
+    overflow: visible;
 }
 
-.toggle-icon {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    transition: all 0.3s ease;
+.sidebar.collapsed:hover .nav-item {
+    justify-content: flex-start;
+    padding: 0.75rem 1rem;
 }
 
-.hamburger-line {
-    width: 18px;
-    height: 2px;
-    background: #ffffff;
-    border-radius: 1px;
-    transition: all 0.3s ease;
+.sidebar.collapsed:hover .nav-item span:not(.nav-icon) {
+    opacity: 1;
+    width: auto;
+    overflow: visible;
 }
 
-/* Collapsed state - transform to X */
-.sidebar.collapsed .hamburger-line:nth-child(1) {
-    transform: translateY(5px) rotate(45deg);
-}
-
-.sidebar.collapsed .hamburger-line:nth-child(2) {
-    opacity: 0;
-}
-
-.sidebar.collapsed .hamburger-line:nth-child(3) {
-    transform: translateY(-5px) rotate(-45deg);
-}
-
-/* Position toggle button at edge when sidebar is collapsed */
-.sidebar.collapsed .sidebar-toggle {
-    position: absolute;
-    right: -18px;
-    top: 1.5rem;
-    background: rgba(255, 255, 255, 0.95);
-    color: #003d1f;
-    border: 2px solid #003d1f;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    z-index: 1000;
-}
-
-.sidebar.collapsed .sidebar-toggle:hover {
-    background: #ffffff;
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+.sidebar.collapsed:hover .coming-soon {
+    display: inline-block;
 }
 
 .logo-icon {
@@ -182,6 +143,7 @@ body {
     opacity: 0;
     width: 0;
     overflow: hidden;
+    transition: all 0.3s ease;
 }
 
 /* Tooltip for collapsed sidebar */

@@ -3,37 +3,32 @@
 // Using Industry-Standard SHA-256 Hashing & Cryptographic Proof Receipts
 // ========================================
 
-// ===== SIDEBAR TOGGLE FUNCTIONALITY =====
-function initializeSidebarToggle() {
+// ===== SIDEBAR HOVER FUNCTIONALITY =====
+function initializeSidebarHover() {
     const sidebar = document.getElementById('sidebar');
-    const sidebarToggle = document.getElementById('sidebarToggle');
+    let collapseTimeout;
     
-    if (sidebarToggle && sidebar) {
-        // Function to update tooltip text
-        function updateTooltip() {
-            const isCollapsed = sidebar.classList.contains('collapsed');
-            sidebarToggle.title = isCollapsed ? 'Expand sidebar' : 'Collapse sidebar';
-        }
+    if (sidebar) {
+        // Start collapsed by default
+        sidebar.classList.add('collapsed');
         
-        sidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('collapsed');
-            
-            // Update tooltip text
-            updateTooltip();
-            
-            // Save sidebar state to localStorage
-            const isCollapsed = sidebar.classList.contains('collapsed');
-            localStorage.setItem('sidebarCollapsed', isCollapsed);
+        // Expand on mouse enter
+        sidebar.addEventListener('mouseenter', function() {
+            clearTimeout(collapseTimeout);
+            // Small delay to prevent flickering
+            setTimeout(() => {
+                if (sidebar.matches(':hover')) {
+                    sidebar.classList.remove('collapsed');
+                }
+            }, 100);
         });
         
-        // Restore sidebar state from localStorage
-        const savedState = localStorage.getItem('sidebarCollapsed');
-        if (savedState === 'true') {
-            sidebar.classList.add('collapsed');
-        }
-        
-        // Set initial tooltip
-        updateTooltip();
+        // Collapse on mouse leave with delay
+        sidebar.addEventListener('mouseleave', function() {
+            collapseTimeout = setTimeout(() => {
+                sidebar.classList.add('collapsed');
+            }, 800); // 800ms delay before collapsing
+        });
     }
 }
 
@@ -256,8 +251,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('📋 Industry-Standard Cryptographic Proof System');
     console.log('===============================================\n');
     
-    // Initialize sidebar toggle
-    initializeSidebarToggle();
+            // Initialize sidebar hover functionality
+        initializeSidebarHover();
     
     // Run core logic tests (now async)
     console.log('Running Cryptographic Proof System Tests:');

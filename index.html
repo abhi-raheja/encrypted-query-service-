@@ -246,7 +246,28 @@
                                            title="Document number must be 3-20 alphanumeric characters" />
                                 </div>
                                 </div>
-                                <button id="checkButton">🔍 Query Partner Network</button>
+                                
+                                <!-- Query Button with Progress Bar -->
+                                <div class="query-action-row">
+                                    <button id="checkButton">🔍 Query Partner Network</button>
+                                    <div class="query-progress-container">
+                                        <div id="queryProgressBar" class="query-progress-bar">
+                                            <div class="progress-header">
+                                                <div class="progress-icon">🛡️</div>
+                                                <div class="progress-text">Sunscreen API</div>
+                                                <div class="progress-status" id="progressStatus">Ready</div>
+                                            </div>
+                                            <div class="progress-track">
+                                                <div id="progressFill" class="progress-fill"></div>
+                                            </div>
+                                            <div class="progress-details">
+                                                <span class="progress-step" id="step1">🔐 Encrypting query</span>
+                                                <span class="progress-step" id="step2">🌐 Coordinating partners</span>
+                                                <span class="progress-step" id="step3">📊 Generating proof</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <p class="input-note">Complete any available fields - system supports partial matching</p>
                             </div>
                             <div class="results-section">
@@ -260,18 +281,6 @@
                                         📋 Audit Log
                                     </button>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- API Visual -->
-                        <div class="api-column">
-                            <div id="sunscreenAPI" class="api-box">
-                                <h3>🛡️ Sunscreen API</h3>
-                                <div class="api-content">
-                                    <div class="api-icon">🔒</div>
-                                    <p>Privacy-Preserving<br/>Risk Intelligence</p>
-                                </div>
-                                <div id="apiStatus" class="api-status">Ready</div>
                             </div>
                         </div>
                     </div>

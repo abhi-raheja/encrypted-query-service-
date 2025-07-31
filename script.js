@@ -1156,8 +1156,12 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
         window.checkButton = document.getElementById('checkButton');
         window.resultsPanel = document.getElementById('resultsPanel');
         window.partnerDataDisplay = document.getElementById('partnerDataDisplay');
-        window.apiStatus = document.getElementById('apiStatus');
-        window.sunscreenAPI = document.getElementById('sunscreenAPI');
+        window.progressStatus = document.getElementById('progressStatus');
+        window.queryProgressBar = document.getElementById('queryProgressBar');
+        window.progressFill = document.getElementById('progressFill');
+        window.step1 = document.getElementById('step1');
+        window.step2 = document.getElementById('step2');
+        window.step3 = document.getElementById('step3');
         
         // View switching elements
         const viewToggle = document.getElementById('viewToggle');
@@ -1257,14 +1261,35 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
     }
 
     function showLoadingState() {
-        window.apiStatus.textContent = 'Processing...';
-        window.apiStatus.style.background = '#ffc107';
-        window.sunscreenAPI.style.transform = 'scale(1.05)';
+        window.progressStatus.textContent = 'Processing...';
+        window.queryProgressBar.classList.add('processing');
+        window.progressFill.classList.add('processing');
+        
+        // Reset all steps
+        window.step1.classList.remove('active');
+        window.step2.classList.remove('active');
+        window.step3.classList.remove('active');
+        
+        // Animate through steps with realistic timing
+        setTimeout(() => {
+            window.step1.classList.add('active');
+            window.progressStatus.textContent = 'Encrypting query...';
+        }, 200);
+        
+        setTimeout(() => {
+            window.step2.classList.add('active');
+            window.progressStatus.textContent = 'Coordinating partners...';
+        }, 800);
+        
+        setTimeout(() => {
+            window.step3.classList.add('active');
+            window.progressStatus.textContent = 'Generating proof...';
+        }, 1400);
         
         window.resultsPanel.innerHTML = `
             <div class="api-response">
                 <p>🔄 Querying Sunscreen API...</p>
-                <p>Coordinating with partner networks...</p>
+                <p>Privacy-preserving identity matching in progress...</p>
             </div>
         `;
     }
@@ -1275,10 +1300,22 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
     }
 
     function displayProofReceipt(userData, proofReceipt) {
-        // Reset API visual
-        window.apiStatus.textContent = 'Ready';
-        window.apiStatus.style.background = '#28a745';
-        window.sunscreenAPI.style.transform = 'scale(1)';
+        // Complete the progress animation
+        window.progressStatus.textContent = 'Complete ✓';
+        window.queryProgressBar.classList.remove('processing');
+        window.progressFill.classList.remove('processing');
+        
+        // Show completion state briefly
+        setTimeout(() => {
+            // Reset progress bar to ready state
+            window.progressStatus.textContent = 'Ready';
+            window.step1.classList.remove('active');
+            window.step2.classList.remove('active');
+            window.step3.classList.remove('active');
+            
+            // Reset progress fill
+            window.progressFill.style.width = '0%';
+        }, 3000);
 
         // Store the actual data for toggling
         window.currentQueryData = {

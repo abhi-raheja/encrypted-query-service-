@@ -12,7 +12,7 @@
         <nav class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
-                    <div class="logo-icon">🔒</div>
+                    <div class="logo-icon">S</div>
                     <div class="logo-text">
                         <span class="logo-main">Sunscreen</span>
                         <span class="logo-sub">The FHE Company</span>
@@ -57,7 +57,7 @@
         <main class="main-content">
             <!-- Top Header -->
             <div class="top-header">
-                <div class="page-title">Secure Query System</div>
+                <div class="page-title">Encrypted Query Platform</div>
                 <div class="user-info">
                     <span class="status-badge">Demo Mode</span>
                 </div>
@@ -90,18 +90,145 @@
                             <div class="input-section">
                                 <h3>📝 Customer Information</h3>
                                 <div class="input-grid">
-                                    <div class="input-field">
-                                        <label for="userEmail">Email Address</label>
-                                        <input type="email" id="userEmail" placeholder="customer@example.com" />
-                                    </div>
-                                    <div class="input-field">
-                                        <label for="userPhone">Phone Number</label>
-                                        <input type="tel" id="userPhone" placeholder="+1-555-0123" />
-                                    </div>
-                                    <div class="input-field">
-                                        <label for="userCountry">Country of Residence</label>
-                                        <input type="text" id="userCountry" placeholder="e.g., United States" />
-                                    </div>
+                                                                    <div class="input-field">
+                                    <label for="userEmail">Email Address</label>
+                                    <input type="email" id="userEmail" placeholder="customer@example.com" 
+                                           pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" 
+                                           title="Please enter a valid email address" />
+                                </div>
+                                <div class="input-field">
+                                    <label for="userPhone">Phone Number</label>
+                                    <input type="tel" id="userPhone" placeholder="+1-555-0123" 
+                                           pattern="^\+?[1-9]\d{1,14}$|^\+?[1-9][ -]\d{3}[ -]\d{3}[ -]\d{4}$"
+                                           title="Please enter a valid phone number (e.g., +1-555-0123)" />
+                                </div>
+                                <div class="input-field">
+                                    <label for="userCountry">Country of Residence</label>
+                                    <select id="userCountry">
+                                        <option value="">Select a country</option>
+                                        <option value="United States">United States</option>
+                                        <option value="United Kingdom">United Kingdom</option>
+                                        <option value="Canada">Canada</option>
+                                        <option value="China">China</option>
+                                        <option value="Mexico">Mexico</option>
+                                        <option value="Germany">Germany</option>
+                                        <option value="France">France</option>
+                                        <option value="Japan">Japan</option>
+                                        <option value="Australia">Australia</option>
+                                        <option value="Brazil">Brazil</option>
+                                        <option value="India">India</option>
+                                        <option value="Russia">Russia</option>
+                                        <option value="South Korea">South Korea</option>
+                                        <option value="Italy">Italy</option>
+                                        <option value="Spain">Spain</option>
+                                        <option value="Netherlands">Netherlands</option>
+                                        <option value="Switzerland">Switzerland</option>
+                                        <option value="Singapore">Singapore</option>
+                                        <option value="Hong Kong">Hong Kong</option>
+                                        <option value="Sweden">Sweden</option>
+                                        <option value="Norway">Norway</option>
+                                        <option value="Denmark">Denmark</option>
+                                        <option value="Finland">Finland</option>
+                                        <option value="Belgium">Belgium</option>
+                                        <option value="Austria">Austria</option>
+                                        <option value="New Zealand">New Zealand</option>
+                                        <option value="South Africa">South Africa</option>
+                                        <option value="Argentina">Argentina</option>
+                                        <option value="Chile">Chile</option>
+                                        <option value="Colombia">Colombia</option>
+                                        <option value="Peru">Peru</option>
+                                        <option value="Venezuela">Venezuela</option>
+                                        <option value="Ukraine">Ukraine</option>
+                                        <option value="Poland">Poland</option>
+                                        <option value="Czech Republic">Czech Republic</option>
+                                        <option value="Hungary">Hungary</option>
+                                        <option value="Romania">Romania</option>
+                                        <option value="Bulgaria">Bulgaria</option>
+                                        <option value="Croatia">Croatia</option>
+                                        <option value="Serbia">Serbia</option>
+                                        <option value="Greece">Greece</option>
+                                        <option value="Turkey">Turkey</option>
+                                        <option value="Israel">Israel</option>
+                                        <option value="Saudi Arabia">Saudi Arabia</option>
+                                        <option value="United Arab Emirates">United Arab Emirates</option>
+                                        <option value="Qatar">Qatar</option>
+                                        <option value="Kuwait">Kuwait</option>
+                                        <option value="Bahrain">Bahrain</option>
+                                        <option value="Oman">Oman</option>
+                                        <option value="Jordan">Jordan</option>
+                                        <option value="Lebanon">Lebanon</option>
+                                        <option value="Egypt">Egypt</option>
+                                        <option value="Morocco">Morocco</option>
+                                        <option value="Tunisia">Tunisia</option>
+                                        <option value="Algeria">Algeria</option>
+                                        <option value="Libya">Libya</option>
+                                        <option value="Nigeria">Nigeria</option>
+                                        <option value="Kenya">Kenya</option>
+                                        <option value="Ghana">Ghana</option>
+                                        <option value="Ethiopia">Ethiopia</option>
+                                        <option value="Tanzania">Tanzania</option>
+                                        <option value="Uganda">Uganda</option>
+                                        <option value="Zimbabwe">Zimbabwe</option>
+                                        <option value="Zambia">Zambia</option>
+                                        <option value="Botswana">Botswana</option>
+                                        <option value="Namibia">Namibia</option>
+                                        <option value="Mauritius">Mauritius</option>
+                                        <option value="Seychelles">Seychelles</option>
+                                        <option value="Madagascar">Madagascar</option>
+                                        <option value="Thailand">Thailand</option>
+                                        <option value="Vietnam">Vietnam</option>
+                                        <option value="Philippines">Philippines</option>
+                                        <option value="Indonesia">Indonesia</option>
+                                        <option value="Malaysia">Malaysia</option>
+                                        <option value="Myanmar">Myanmar</option>
+                                        <option value="Cambodia">Cambodia</option>
+                                        <option value="Laos">Laos</option>
+                                        <option value="Brunei">Brunei</option>
+                                        <option value="Taiwan">Taiwan</option>
+                                        <option value="Mongolia">Mongolia</option>
+                                        <option value="Kazakhstan">Kazakhstan</option>
+                                        <option value="Uzbekistan">Uzbekistan</option>
+                                        <option value="Kyrgyzstan">Kyrgyzstan</option>
+                                        <option value="Tajikistan">Tajikistan</option>
+                                        <option value="Turkmenistan">Turkmenistan</option>
+                                        <option value="Afghanistan">Afghanistan</option>
+                                        <option value="Pakistan">Pakistan</option>
+                                        <option value="Bangladesh">Bangladesh</option>
+                                        <option value="Sri Lanka">Sri Lanka</option>
+                                        <option value="Nepal">Nepal</option>
+                                        <option value="Bhutan">Bhutan</option>
+                                        <option value="Maldives">Maldives</option>
+                                        <option value="Iran">Iran</option>
+                                        <option value="Iraq">Iraq</option>
+                                        <option value="Syria">Syria</option>
+                                        <option value="Cyprus">Cyprus</option>
+                                        <option value="Malta">Malta</option>
+                                        <option value="Iceland">Iceland</option>
+                                        <option value="Ireland">Ireland</option>
+                                        <option value="Portugal">Portugal</option>
+                                        <option value="Luxembourg">Luxembourg</option>
+                                        <option value="Monaco">Monaco</option>
+                                        <option value="Liechtenstein">Liechtenstein</option>
+                                        <option value="San Marino">San Marino</option>
+                                        <option value="Vatican City">Vatican City</option>
+                                        <option value="Andorra">Andorra</option>
+                                        <option value="Albania">Albania</option>
+                                        <option value="Bosnia and Herzegovina">Bosnia and Herzegovina</option>
+                                        <option value="Montenegro">Montenegro</option>
+                                        <option value="North Macedonia">North Macedonia</option>
+                                        <option value="Kosovo">Kosovo</option>
+                                        <option value="Moldova">Moldova</option>
+                                        <option value="Belarus">Belarus</option>
+                                        <option value="Lithuania">Lithuania</option>
+                                        <option value="Latvia">Latvia</option>
+                                        <option value="Estonia">Estonia</option>
+                                        <option value="Slovenia">Slovenia</option>
+                                        <option value="Slovakia">Slovakia</option>
+                                        <option value="Georgia">Georgia</option>
+                                        <option value="Armenia">Armenia</option>
+                                        <option value="Azerbaijan">Azerbaijan</option>
+                                    </select>
+                                </div>
                                     <div class="input-field">
                                         <label for="docType">Identity Document Type</label>
                                         <select id="docType">
@@ -112,10 +239,12 @@
                                             <option value="ssn">Social Security Number</option>
                                         </select>
                                     </div>
-                                    <div class="input-field">
-                                        <label for="docNumber">Document Number</label>
-                                        <input type="text" id="docNumber" placeholder="e.g., A12345678" />
-                                    </div>
+                                                                    <div class="input-field">
+                                    <label for="docNumber">Document Number</label>
+                                    <input type="text" id="docNumber" placeholder="e.g., A12345678" 
+                                           pattern="[A-Za-z0-9]{3,20}" 
+                                           title="Document number must be 3-20 alphanumeric characters" />
+                                </div>
                                 </div>
                                 <button id="checkButton">🔍 Query Partner Network</button>
                                 <p class="input-note">Complete any available fields - system supports partial matching</p>
@@ -128,7 +257,7 @@
                                 
                                 <div class="audit-section">
                                     <button onclick="openAuditModal()" class="audit-log-btn">
-                                        📋 Regulatory Audit Trail
+                                        📋 Audit Log
                                     </button>
                                 </div>
                             </div>
@@ -235,31 +364,91 @@
 
                     <h4>🧪 Test Customer Scenarios</h4>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem;">
+                        
+                        <!-- BANNED Users -->
                         <div style="background: #fee2e2; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #dc2626;">
-                            <strong>🚨 High Risk Customer:</strong><br/>
+                            <strong>🚨 BANNED - Velocity Withdrawals:</strong><br/>
                             <small><strong>Email:</strong> alex.chen@gmail.com<br/>
-                            <strong>Phone:</strong> +1-555-0187<br/>
+                            <strong>Phone:</strong> +1-555-0123<br/>
                             <strong>Country:</strong> United States<br/>
-                            <strong>Doc:</strong> drivers_license DL789456123</small>
+                            <strong>Doc:</strong> passport US123456789</small>
                         </div>
+                        
+                        <div style="background: #fee2e2; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #dc2626;">
+                            <strong>🚨 BANNED - SIM Swap Attack:</strong><br/>
+                            <small><strong>Email:</strong> phone-thief@scammer.com<br/>
+                            <strong>Phone:</strong> +1-555-0123<br/>
+                            <strong>Country:</strong> Mexico<br/>
+                            <strong>Doc:</strong> national_id MX999888777</small>
+                        </div>
+
+                        <!-- BLOCKED Users -->
                         <div style="background: #fef3c7; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #f59e0b;">
-                            <strong>⚠️ Sanctions List:</strong><br/>
+                            <strong>⚠️ BLOCKED - Sanctions List:</strong><br/>
                             <small><strong>Email:</strong> crypto.trader2024@protonmail.com<br/>
                             <strong>Phone:</strong> +44-20-7946-0958<br/>
                             <strong>Country:</strong> United Kingdom<br/>
-                            <strong>Doc:</strong> passport GBR123456789</small>
+                            <strong>Doc:</strong> passport UK987654321</small>
                         </div>
+                        
+                        <div style="background: #fef3c7; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #f59e0b;">
+                            <strong>⚠️ BLOCKED - OFAC Sanctions:</strong><br/>
+                            <small><strong>Email:</strong> sanctioned-user@email.com<br/>
+                            <strong>Phone:</strong> +86-138-0013-8000<br/>
+                            <strong>Country:</strong> China<br/>
+                            <strong>Doc:</strong> national_id CN123456789012345</small>
+                        </div>
+
+                        <!-- UNDER REVIEW/INVESTIGATION -->
                         <div style="background: #dbeafe; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #3b82f6;">
-                            <strong>🔍 Under Review:</strong><br/>
+                            <strong>🔍 UNDER REVIEW - High Velocity:</strong><br/>
                             <small><strong>Email:</strong> fraud-user-1@email.com<br/>
-                            <strong>Phone:</strong> +1-555-0199<br/>
+                            <strong>Phone:</strong> +1-555-0987<br/>
                             <strong>Country:</strong> Canada<br/>
-                            <strong>Doc:</strong> national_id CAN987654321</small>
+                            <strong>Doc:</strong> drivers_license CA654321987</small>
                         </div>
+                        
+                        <div style="background: #e0e7ff; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #6366f1;">
+                            <strong>🕵️ UNDER INVESTIGATION - Identity Theft:</strong><br/>
+                            <small><strong>Email:</strong> different-user@example.com<br/>
+                            <strong>Phone:</strong> +1-555-9999<br/>
+                            <strong>Country:</strong> United States<br/>
+                            <strong>Doc:</strong> passport US123456789</small>
+                        </div>
+
+                        <!-- Clean Users (Known but no flags) -->
                         <div style="background: #dcfce7; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #16a34a;">
-                            <strong>✅ Clean Customer:</strong><br/>
-                            <small>Try any information not listed above to see a clean result</small>
+                            <strong>✅ CLEAN - Known Clean Record:</strong><br/>
+                            <small><strong>Email:</strong> clean.user@legitimate.com<br/>
+                            <strong>Phone:</strong> +1-555-0100<br/>
+                            <strong>Country:</strong> United States<br/>
+                            <strong>Doc:</strong> drivers_license US987654321</small>
                         </div>
+                        
+                        <div style="background: #dcfce7; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #16a34a;">
+                            <strong>✅ CLEAN - Verified Trader:</strong><br/>
+                            <small><strong>Email:</strong> verified.trader@crypto.com<br/>
+                            <strong>Phone:</strong> +1-555-0200<br/>
+                            <strong>Country:</strong> Canada<br/>
+                            <strong>Doc:</strong> passport CA111222333</small>
+                        </div>
+
+                        <!-- Unknown Users -->
+                        <div style="background: #f3f4f6; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #6b7280;">
+                            <strong>🔍 UNKNOWN - New Customer:</strong><br/>
+                            <small>Try any information not listed above to see unknown user result</small>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #f3f4f6; padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem;">
+                        <h5 style="margin: 0 0 0.5rem 0; color: #374151;">💡 Understanding Results:</h5>
+                        <p style="margin: 0; font-size: 0.9rem; color: #6b7280;">
+                            <strong>🚨 FLAGGED Users:</strong> Found in database with risk flags (BANNED/BLOCKED/UNDER_REVIEW)<br/>
+                            <strong>✅ CLEAN Users:</strong> Found in database but verified clean record (no risk flags)<br/>
+                            <strong>🔍 UNKNOWN Users:</strong> Not found in partner database (may be new legitimate customer)<br/>
+                            <strong>⚠️ CONFLICTED:</strong> Data inconsistency detected (potential fraud/identity theft)<br/>
+                            <strong>🔍 Advanced Testing:</strong> Mix fields from different users to test conflict detection
+                        </p>
                     </div>
 
                     <h4>🔄 Demo Workflow</h4>

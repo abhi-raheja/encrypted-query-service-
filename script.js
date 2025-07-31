@@ -3,6 +3,179 @@
 // Using Industry-Standard SHA-256 Hashing & Cryptographic Proof Receipts
 // ========================================
 
+// ===== INPUT VALIDATION FUNCTIONALITY =====
+function initializeInputValidation() {
+    const emailInput = document.getElementById('userEmail');
+    const phoneInput = document.getElementById('userPhone');
+    const countrySelect = document.getElementById('userCountry');
+    const docNumberInput = document.getElementById('docNumber');
+    
+    // Email validation
+    if (emailInput) {
+        emailInput.addEventListener('input', function() {
+            validateField(this, isValidEmail(this.value), 'Please enter a valid email address');
+        });
+    }
+    
+    // Phone validation  
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            validateField(this, isValidPhone(this.value), 'Please enter a valid phone number');
+        });
+    }
+    
+    // Document number validation (alphanumeric only)
+    if (docNumberInput) {
+        docNumberInput.addEventListener('input', function() {
+            // Remove any non-alphanumeric characters
+            this.value = this.value.replace(/[^a-zA-Z0-9]/g, '');
+            validateField(this, this.value.length >= 3, 'Document number must be at least 3 characters');
+        });
+    }
+    
+    // Country selection
+    if (countrySelect) {
+        countrySelect.addEventListener('change', function() {
+            validateField(this, this.value !== '', 'Please select a country');
+        });
+    }
+}
+
+function validateField(field, isValid, errorMessage) {
+    field.setCustomValidity(isValid ? '' : errorMessage);
+    
+    // Remove existing validation feedback
+    const existingFeedback = field.parentNode.querySelector('.validation-feedback');
+    if (existingFeedback) {
+        existingFeedback.remove();
+    }
+    
+    // Add validation feedback if invalid and field has been touched
+    if (!isValid && field.value !== '') {
+        const feedback = document.createElement('div');
+        feedback.className = 'validation-feedback';
+        feedback.style.cssText = 'color: #dc3545; font-size: 0.8rem; margin-top: 0.25rem;';
+        feedback.textContent = errorMessage;
+        field.parentNode.appendChild(feedback);
+    }
+}
+
+function isValidEmail(email) {
+    if (!email) return true; // Empty is valid (optional)
+    const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
+    return emailRegex.test(email);
+}
+
+function isValidPhone(phone) {
+    if (!phone) return true; // Empty is valid (optional)
+    // Accept various phone formats
+    const phoneRegex = /^[\+]?[1-9][\d\s\-\(\)]{7,15}$/;
+    return phoneRegex.test(phone);
+}
+
+function validateFormBeforeSubmission() {
+    const emailField = document.getElementById('userEmail');
+    const phoneField = document.getElementById('userPhone');
+    const countryField = document.getElementById('userCountry');
+    const docTypeField = document.getElementById('docType');
+    const docNumberField = document.getElementById('docNumber');
+    
+    const errors = [];
+    
+    // Check email validation
+    if (emailField && emailField.value && !isValidEmail(emailField.value)) {
+        errors.push('Please enter a valid email address');
+        emailField.focus();
+    }
+    
+    // Check phone validation
+    if (phoneField && phoneField.value && !isValidPhone(phoneField.value)) {
+        errors.push('Please enter a valid phone number');
+        if (errors.length === 1) phoneField.focus(); // Focus first error field
+    }
+    
+    // Check document validation (if both type and number are provided, both must be valid)
+    if (docTypeField && docNumberField) {
+        const hasDocType = docTypeField.value !== '';
+        const hasDocNumber = docNumberField.value !== '';
+        
+        if (hasDocType && !hasDocNumber) {
+            errors.push('Please enter a document number for the selected document type');
+            if (errors.length === 1) docNumberField.focus();
+        } else if (!hasDocType && hasDocNumber) {
+            errors.push('Please select a document type for the entered document number');
+            if (errors.length === 1) docTypeField.focus();
+        } else if (hasDocNumber && docNumberField.value.length < 3) {
+            errors.push('Document number must be at least 3 characters');
+            if (errors.length === 1) docNumberField.focus();
+        }
+    }
+    
+    // Check that at least one field is provided
+    const hasAnyData = (
+        (emailField && emailField.value.trim() !== '') ||
+        (phoneField && phoneField.value.trim() !== '') ||
+        (countryField && countryField.value !== '') ||
+        (docTypeField && docNumberField && docTypeField.value !== '' && docNumberField.value.trim() !== '')
+    );
+    
+    if (!hasAnyData) {
+        errors.push('Please enter at least one piece of customer information to query');
+        if (emailField) emailField.focus();
+    }
+    
+    // Show errors if any
+    if (errors.length > 0) {
+        showValidationError(errors[0]); // Show first error
+        return false;
+    }
+    
+    return true;
+}
+
+function showValidationError(message) {
+    // Remove any existing error alerts
+    const existingAlert = document.querySelector('.validation-alert');
+    if (existingAlert) {
+        existingAlert.remove();
+    }
+    
+    // Create and show error alert
+    const alert = document.createElement('div');
+    alert.className = 'validation-alert';
+    alert.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #dc3545;
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        z-index: 10000;
+        font-weight: 500;
+        max-width: 400px;
+        animation: slideIn 0.3s ease;
+    `;
+    alert.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span>⚠️</span>
+            <span>${message}</span>
+            <button onclick="this.parentElement.parentElement.remove()" 
+                    style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; margin-left: auto;">×</button>
+        </div>
+    `;
+    
+    document.body.appendChild(alert);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (alert.parentNode) {
+            alert.remove();
+        }
+    }, 5000);
+}
+
 // ===== SIDEBAR HOVER FUNCTIONALITY =====
 function initializeSidebarHover() {
     const sidebar = document.getElementById('sidebar');
@@ -269,9 +442,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Error details:', error.stack);
         }
         
-        console.log('\n🎯 Demo Ready!');
-        console.log('Try the multi-field user onboarding demo!');
-    }, 100);
+            console.log('\n🎯 Demo Ready!');
+    console.log('Try the multi-field user onboarding demo!');
+    
+    // Initialize input validation
+    initializeInputValidation();
+}, 100);
 });
 
 // ===== IMPLEMENTATION AREA =====
@@ -375,6 +551,65 @@ const mapleCEX_HashDatabase = {
         wallet_addresses: ["bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq"],
         compliance_officer: "A.Thompson",
         internal_case_id: "IDENTITY-2024-0789"
+    },
+    
+    // ===== CLEAN USERS (Known to partner but no risk flags) =====
+    
+    // Hash of: 'clean.user@legitimate.com'
+    "b8f4d6e2a3c7f9e1d5b7a4c8e2f6d9a3c7e1b5f8d2a6c9e3f7b1d4a8c2e6f9d3": {
+        user_data: {
+            email: "clean.user@legitimate.com",
+            phone: "+1-555-0100",
+            country: "United States",
+            document_type: "Driver License",
+            document_number: "US987654321"
+        },
+        risk_tags: [], // No risk flags - clean user
+        flagged_quarter: null,
+        exact_flagged_date: null,
+        status: "CLEAN",
+        investigation_notes: "Completed standard KYC verification, no issues found",
+        wallet_addresses: ["bc1qrandomcleanaddress123456789"],
+        compliance_officer: "L.Martinez",
+        internal_case_id: "CLEAN-2024-0001"
+    },
+    
+    // Hash of: 'good.customer@business.org'
+    "c9a5e7b3d1f8c6a4e2b9f7d3a8c5e1b6d4f9a7c2e8b5d1f6a3c9e7b4d2a8c5f1": {
+        user_data: {
+            email: "good.customer@business.org", 
+            phone: "+44-20-1234-5678",
+            country: "United Kingdom",
+            document_type: "Passport",
+            document_number: "GB999888777"
+        },
+        risk_tags: [], // No risk flags - clean user
+        flagged_quarter: null,
+        exact_flagged_date: null,
+        status: "CLEAN",
+        investigation_notes: "Long-standing customer, excellent transaction history",
+        wallet_addresses: ["1CleanAddress123456789ABCDEF"],
+        compliance_officer: "P.Johnson",
+        internal_case_id: "CLEAN-2023-0445"
+    },
+    
+    // Hash of: 'verified.trader@crypto.com'
+    "d7c3a9f5e1b8d4c2a6f3e9b7d1c5a8f2e6b3d9c7a1f5e2b8d4c6a3f9e7b1d5c2": {
+        user_data: {
+            email: "verified.trader@crypto.com",
+            phone: "+1-555-0200",
+            country: "Canada", 
+            document_type: "Passport",
+            document_number: "CA111222333"
+        },
+        risk_tags: [], // No risk flags - clean user
+        flagged_quarter: null,
+        exact_flagged_date: null,
+        status: "CLEAN",
+        investigation_notes: "Professional trader, all compliance checks passed",
+        wallet_addresses: ["bc1qverifiedtraderaddress987654"],
+        compliance_officer: "K.Chen",
+        internal_case_id: "CLEAN-2024-0089"
     },
     
     // Test case: Same phone as alex.chen but different email/document
@@ -541,6 +776,19 @@ class CryptographicProofSystem {
         
         if (allFieldsMatch && !strongestMatch.hasConflicts) {
             console.log(`✅ Full consistency match on: ${strongestMatch.matchedFields.join(', ')}`);
+            
+            // Check if user is clean (no risk flags)
+            if (strongestMatch.riskData.risk_tags && strongestMatch.riskData.risk_tags.length === 0) {
+                console.log(`✅ Clean user found: ${strongestMatch.riskData.status}`);
+                return this.generateCleanUserReceipt(
+                    strongestMatch.hash,
+                    strongestMatch.riskData,
+                    userData,
+                    strongestMatch.matchedFields
+                );
+            }
+            
+            // User has risk flags
             return this.generateMultiFieldProofReceipt(
                 strongestMatch.hash, 
                 strongestMatch.riskData, 
@@ -759,7 +1007,38 @@ class CryptographicProofSystem {
         return finalProofReceipt;
     }
 
-    // Generate receipt for clean users (no match)
+    // Generate receipt for clean users (found but no risk flags)
+    async generateCleanUserReceipt(hash, riskData, originalUserData, matchedFields) {
+        const timestamp = new Date().toISOString();
+        
+        const baseReceipt = {
+            provider: "MapleCEX",
+            query_hash: hash,
+            timestamp: timestamp,
+            result: {
+                match_found: true,
+                match_quality: "CLEAN",
+                status: "USER_CLEAR",
+                matched_fields: matchedFields,
+                case_id: riskData.internal_case_id,
+                compliance_status: riskData.status,
+                verification_notes: "User found in partner database with clean record"
+            },
+            compliance: {
+                query_id: `QUERY-${Date.now()}`,
+                auditable: true,
+                regulation_compliance: ["BSA", "KYC", "OFAC"]
+            }
+        };
+        
+        // Generate signature
+        const signatureContent = `${baseReceipt.provider}${baseReceipt.timestamp}${baseReceipt.query_hash}${JSON.stringify(baseReceipt.result)}`;
+        baseReceipt.signature = await sha256(signatureContent);
+        
+        return baseReceipt;
+    }
+    
+    // Generate receipt for unknown users (no match found)
     async generateNoMatchReceipt(queryHash, originalUserData) {
         const timestamp = new Date().toISOString();
         
@@ -769,7 +1048,10 @@ class CryptographicProofSystem {
             timestamp: timestamp,
             result: {
                 match_found: false,
-                searched_fields: Object.keys(originalUserData).filter(key => originalUserData[key])
+                match_quality: "NO_MATCH",
+                status: "UNKNOWN_USER",
+                searched_fields: Object.keys(originalUserData).filter(key => originalUserData[key]),
+                verification_notes: "User not found in partner database - may be new customer"
             },
             compliance: {
                 query_id: `QUERY-${Date.now()}`,
@@ -888,6 +1170,11 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
     // Handle user query with cryptographic proof system
     async function handleUserQuery() {
         console.log('🔍 handleUserQuery called');
+        
+        // Validate form before processing query
+        if (!validateFormBeforeSubmission()) {
+            return; // Stop execution if validation fails
+        }
         
         // Get all form values with error checking
         const userData = {};
@@ -1062,16 +1349,21 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
                     </div>
                 `;
             } else {
-                // Standard no-match case
+                // Standard no-match case - truly unknown user
                 responseHTML = `
                     <div class="api-response no-match">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                            <h4>🟢 Query Complete - ${isDecrypted ? 'User Clear' : encryptedPlaceholder}</h4>
+                            <h4>🔍 Query Complete - ${isDecrypted ? 'Unknown User' : encryptedPlaceholder}</h4>
                             ${decryptButton}
                         </div>
                         <p><strong>Searched Fields:</strong> ${userInfoText}</p>
-                        <p><strong>Result:</strong> ${isDecrypted ? 'No risk flags found across partner network' : encryptedPlaceholder}</p>
-                        <div style="margin-top: 0.75rem; padding: 0.5rem; background: #d4edda; border-radius: 4px; font-size: 0.9rem;">
+                        <p><strong>Result:</strong> ${isDecrypted ? 'User not found in partner database' : encryptedPlaceholder}</p>
+                        <p><strong>Status:</strong> ${isDecrypted ? proofReceipt.result.status || 'UNKNOWN_USER' : encryptedPlaceholder}</p>
+                        <p><strong>Recommendation:</strong> ${isDecrypted ? 'Apply standard new customer verification procedures' : encryptedPlaceholder}</p>
+                        <div style="margin-top: 0.75rem; padding: 0.5rem; background: #e7f3ff; border-radius: 4px; font-size: 0.9rem;">
+                            <strong>ℹ️ New Customer:</strong> ${isDecrypted ? 'User may be legitimate new customer - proceed with standard KYC' : encryptedPlaceholder}
+                        </div>
+                        <div style="margin-top: 0.5rem; padding: 0.5rem; background: #f0f8f0; border-radius: 4px; font-size: 0.9rem;">
                             <strong>🔐 Privacy Protected:</strong> Query processed without revealing user identity to partners
                         </div>
                     </div>
@@ -1082,7 +1374,31 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
             const matchQuality = proofReceipt.result.match_quality;
             const confidenceLevel = proofReceipt.result.confidence_level;
             
-            if (matchQuality === 'SINGLE_FIELD' || matchQuality === 'PARTIAL_FIELDS') {
+            if (matchQuality === 'CLEAN') {
+                // Handle clean users (found but no risk flags)
+                const matchedFields = proofReceipt.result.matched_fields || [];
+                const matchedFieldsText = matchedFields.length > 0 ? matchedFields.join(', ') : 'None';
+                
+                responseHTML = `
+                    <div class="api-response clean-user" style="border-left: 4px solid #28a745;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h4>✅ User Clear - Known Clean Record</h4>
+                            ${decryptButton}
+                        </div>
+                        <p><strong>Searched Fields:</strong> ${userInfoText}</p>
+                        <p><strong>Matched Fields:</strong> ${isDecrypted ? matchedFieldsText : encryptedPlaceholder}</p>
+                        <p><strong>Case ID:</strong> ${isDecrypted ? proofReceipt.result.case_id || 'N/A' : encryptedPlaceholder}</p>
+                        <p><strong>Status:</strong> ${isDecrypted ? proofReceipt.result.compliance_status : encryptedPlaceholder}</p>
+                        <p><strong>Verification:</strong> ${isDecrypted ? proofReceipt.result.verification_notes : encryptedPlaceholder}</p>
+                        <div style="margin-top: 0.75rem; padding: 0.5rem; background: #d4edda; border-radius: 4px; font-size: 0.9rem;">
+                            <strong>✅ Clean Record:</strong> User found in partner database with verified clean history
+                        </div>
+                        <div style="margin-top: 0.5rem; padding: 0.5rem; background: #e7f3ff; border-radius: 4px; font-size: 0.9rem;">
+                            <strong>🔐 Privacy Protected:</strong> Query processed without revealing user identity to partners
+                        </div>
+                    </div>
+                `;
+            } else if (matchQuality === 'SINGLE_FIELD' || matchQuality === 'PARTIAL_FIELDS') {
                 // Handle partial matches with confidence indicators
                 const confidenceColor = confidenceLevel === 'LOW' ? '#ffc107' : confidenceLevel === 'MEDIUM' ? '#fd7e14' : '#dc3545';
                 const matchedFields = proofReceipt.result.matched_fields || [];
@@ -1290,19 +1606,31 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
                                          const result = entry.original_response.result;
                                          const matchQuality = result.match_quality;
                                          
-                                         if (result.match_found) {
-                                             // Handle actual matches (with or without partial quality)
-                                             const riskTags = result.risk_tags ? result.risk_tags.join(', ') : 'N/A';
-                                             const matchedFields = result.matched_fields ? result.matched_fields.join(', ') : result.match_field || 'N/A';
-                                             const confidenceLevel = result.confidence_level ? ` (${result.confidence_level} confidence)` : '';
-                                             const matchType = matchQuality && (matchQuality === 'SINGLE_FIELD' || matchQuality === 'PARTIAL_FIELDS') ? ` - ${matchQuality.replace('_', ' ').toLowerCase()}` : '';
-                                             
-                                             return `<p><strong>Result:</strong> Risk Alert - User flagged${matchType}${confidenceLevel}</p>
-                                                     <p><strong>Risk Tags:</strong> ${riskTags}</p>
-                                                     <p><strong>Flagged Quarter:</strong> ${result.flagged_quarter || 'N/A'}</p>
-                                                     <p><strong>Matched Fields:</strong> ${matchedFields}</p>
-                                                     <p><strong>Provider Query ID:</strong> ${entry.original_response.compliance?.query_id || 'N/A'}</p>`;
-                                         } else if (matchQuality === 'CONFLICTED') {
+                                                                                 if (result.match_found) {
+                                            if (matchQuality === 'CLEAN') {
+                                                // Handle clean users (found but no risk flags)
+                                                const matchedFields = result.matched_fields ? result.matched_fields.join(', ') : 'N/A';
+                                                
+                                                return `<p><strong>Result:</strong> ✅ User Clear - Known Clean Record</p>
+                                                        <p><strong>Status:</strong> ${result.compliance_status || 'CLEAN'}</p>
+                                                        <p><strong>Case ID:</strong> ${result.case_id || 'N/A'}</p>
+                                                        <p><strong>Matched Fields:</strong> ${matchedFields}</p>
+                                                        <p><strong>Verification:</strong> ${result.verification_notes || 'User found in partner database with clean record'}</p>
+                                                        <p><strong>Provider Query ID:</strong> ${entry.original_response.compliance?.query_id || 'N/A'}</p>`;
+                                            } else {
+                                                // Handle actual matches with risk flags
+                                                const riskTags = result.risk_tags ? result.risk_tags.join(', ') : 'N/A';
+                                                const matchedFields = result.matched_fields ? result.matched_fields.join(', ') : result.match_field || 'N/A';
+                                                const confidenceLevel = result.confidence_level ? ` (${result.confidence_level} confidence)` : '';
+                                                const matchType = matchQuality && (matchQuality === 'SINGLE_FIELD' || matchQuality === 'PARTIAL_FIELDS') ? ` - ${matchQuality.replace('_', ' ').toLowerCase()}` : '';
+                                                
+                                                return `<p><strong>Result:</strong> 🚨 Risk Alert - User flagged${matchType}${confidenceLevel}</p>
+                                                        <p><strong>Risk Tags:</strong> ${riskTags}</p>
+                                                        <p><strong>Flagged Quarter:</strong> ${result.flagged_quarter || 'N/A'}</p>
+                                                        <p><strong>Matched Fields:</strong> ${matchedFields}</p>
+                                                        <p><strong>Provider Query ID:</strong> ${entry.original_response.compliance?.query_id || 'N/A'}</p>`;
+                                            }
+                                        } else if (matchQuality === 'CONFLICTED') {
                                              // Handle data conflicts
                                              const matchedFields = result.matched_fields ? result.matched_fields.join(', ') : 'None';
                                              const conflictedFields = result.conflicted_fields ? result.conflicted_fields.join(', ') : 'None';
@@ -1318,11 +1646,13 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
                                                      <p><strong>Potential Matches:</strong> ${result.potential_matches || 'Multiple'}</p>
                                                      <p><strong>Security Flag:</strong> ${entry.original_response.compliance?.security_flag || 'CROSS_CONTAMINATION_DETECTED'}</p>
                                                      <p><strong>Reason:</strong> ${result.reason || 'Multiple users match different provided fields'}</p>`;
-                                         } else {
-                                             // Handle genuine "User Clear" cases
-                                             return `<p><strong>Result:</strong> User Clear - No risk flags found</p>
-                                                     <p><strong>Network Coverage:</strong> Partner exchange network queried</p>`;
-                                         }
+                                                                                 } else {
+                                            // Handle unknown users (not found in database)
+                                            return `<p><strong>Result:</strong> 🔍 Unknown User - Not found in partner database</p>
+                                                    <p><strong>Status:</strong> ${result.status || 'UNKNOWN_USER'}</p>
+                                                    <p><strong>Recommendation:</strong> Apply standard new customer verification procedures</p>
+                                                    <p><strong>Note:</strong> ${result.verification_notes || 'User may be legitimate new customer'}</p>`;
+                                        }
                                      })()}
                                      <p><strong>Response Timestamp:</strong> ${entry.original_response.timestamp}</p>
                                  </div>
@@ -1426,39 +1756,61 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
         const formattedData = Object.entries(mapleCEX_HashDatabase)
             .map(([emailHash, riskData]) => {
                 const tagList = riskData.risk_tags.map(tag => 
-                    `<span style="background: #dc3545; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.8rem;">${tag}</span>`
+                    `<span style="background: #dc3545; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 500;">${tag}</span>`
                 ).join(' ');
                 
-                return `<div style="margin-bottom: 1.5rem; padding: 1rem; border-left: 3px solid #6f42c1; background: #f8f9fa; border-radius: 4px;">
-                    <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 0.5rem;">
-                        <strong style="color: #6f42c1; font-family: monospace; font-size: 0.9rem;">Case ${riskData.internal_case_id}</strong>
-                        <span style="background: ${riskData.status === 'BANNED' ? '#dc3545' : riskData.status === 'BLOCKED' ? '#fd7e14' : '#ffc107'}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold;">${riskData.status}</span>
+                return `
+                <div style="margin-bottom: 1.5rem; padding: 1.25rem; border: 1px solid #e0e0e0; background: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <!-- Header with Case ID and Status -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 2px solid #f0f0f0;">
+                        <h4 style="margin: 0; color: #2c3e50; font-size: 1.1rem; font-weight: 600;">📋 Case ${riskData.internal_case_id}</h4>
+                        <span style="background: ${riskData.status === 'BANNED' ? '#dc3545' : riskData.status === 'BLOCKED' ? '#fd7e14' : '#ffc107'}; color: white; padding: 4px 12px; border-radius: 16px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">${riskData.status}</span>
                     </div>
-                    <div style="margin-bottom: 0.5rem;">
-                        <strong>Case ID:</strong> ${riskData.internal_case_id} | 
-                        <strong>Officer:</strong> ${riskData.compliance_officer}
-                    </div>
-                    <div style="margin-bottom: 0.5rem;">
-                        <strong>Exact Date:</strong> ${new Date(riskData.exact_flagged_date).toLocaleDateString()} | 
-                        <strong>Reported Quarter:</strong> ${riskData.flagged_quarter}
-                    </div>
-                    <div style="margin-bottom: 0.5rem;">
-                        <strong>User Data:</strong><br/>
-                        <div style="margin-left: 1rem; font-size: 0.85rem;">
-                            <strong>Email:</strong> ${riskData.user_data?.email || 'N/A'}<br/>
-                            <strong>Phone:</strong> ${riskData.user_data?.phone || 'N/A'}<br/>
-                            <strong>Country:</strong> ${riskData.user_data?.country || 'N/A'}<br/>
-                            <strong>Document:</strong> ${riskData.user_data?.document_type || 'N/A'} ${riskData.user_data?.document_number || 'N/A'}
+
+                    <!-- Case Information Grid -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                        <div>
+                            <div style="background: #f8f9fa; padding: 0.75rem; border-radius: 6px;">
+                                <div style="font-size: 0.8rem; color: #6c757d; text-transform: uppercase; font-weight: 600; margin-bottom: 0.25rem;">Case Details</div>
+                                <div style="font-size: 0.9rem;"><strong>ID:</strong> ${riskData.internal_case_id}</div>
+                                <div style="font-size: 0.9rem;"><strong>Officer:</strong> ${riskData.compliance_officer}</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="background: #f8f9fa; padding: 0.75rem; border-radius: 6px;">
+                                <div style="font-size: 0.8rem; color: #6c757d; text-transform: uppercase; font-weight: 600; margin-bottom: 0.25rem;">Timeline</div>
+                                <div style="font-size: 0.9rem;"><strong>Date:</strong> ${new Date(riskData.exact_flagged_date).toLocaleDateString()}</div>
+                                <div style="font-size: 0.9rem;"><strong>Quarter:</strong> ${riskData.flagged_quarter}</div>
+                            </div>
                         </div>
                     </div>
-                    <div style="margin-bottom: 0.5rem;">
-                        <strong>Wallets:</strong> <code style="font-size: 0.8rem;">${riskData.wallet_addresses.join(', ')}</code>
+
+                    <!-- User Information -->
+                    <div style="margin-bottom: 1rem;">
+                        <div style="background: #f1f8ff; padding: 0.75rem; border-radius: 6px; border-left: 4px solid #0066cc;">
+                            <div style="font-size: 0.8rem; color: #0066cc; text-transform: uppercase; font-weight: 600; margin-bottom: 0.5rem;">👤 User Information</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.9rem;">
+                                <div><strong>Email:</strong> ${riskData.user_data?.email || 'N/A'}</div>
+                                <div><strong>Phone:</strong> ${riskData.user_data?.phone || 'N/A'}</div>
+                                <div><strong>Country:</strong> ${riskData.user_data?.country || 'N/A'}</div>
+                                <div><strong>Document:</strong> ${riskData.user_data?.document_type || 'N/A'} ${riskData.user_data?.document_number || 'N/A'}</div>
+                            </div>
+                        </div>
                     </div>
-                    <div style="margin-bottom: 0.5rem;">
-                        <strong>Risk Tags:</strong> ${tagList}
+
+                    <!-- Risk Information -->
+                    <div style="margin-bottom: 1rem;">
+                        <div style="background: #fff5f5; padding: 0.75rem; border-radius: 6px; border-left: 4px solid #dc3545;">
+                            <div style="font-size: 0.8rem; color: #dc3545; text-transform: uppercase; font-weight: 600; margin-bottom: 0.5rem;">🚨 Risk Assessment</div>
+                            <div style="margin-bottom: 0.5rem;">${tagList}</div>
+                            <div style="font-size: 0.85rem; color: #666;"><strong>Wallets:</strong> <code style="font-size: 0.8rem; background: #f8f9fa; padding: 2px 4px; border-radius: 3px;">${riskData.wallet_addresses.join(', ')}</code></div>
+                        </div>
                     </div>
-                    <div style="font-size: 0.9rem; color: #666; font-style: italic; margin-top: 0.5rem;">
-                        <strong>Investigation:</strong> "${riskData.investigation_notes}"
+
+                    <!-- Investigation Notes -->
+                    <div style="background: #f8f9fa; padding: 0.75rem; border-radius: 6px; border-left: 4px solid #6c757d;">
+                        <div style="font-size: 0.8rem; color: #6c757d; text-transform: uppercase; font-weight: 600; margin-bottom: 0.25rem;">🔍 Investigation Notes</div>
+                        <div style="font-size: 0.9rem; font-style: italic; color: #495057;">"${riskData.investigation_notes}"</div>
                     </div>
                 </div>`;
             })

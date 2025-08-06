@@ -179,28 +179,19 @@ function showValidationError(message) {
 // ===== SIDEBAR HOVER FUNCTIONALITY =====
 function initializeSidebarHover() {
     const sidebar = document.getElementById('sidebar');
-    let collapseTimeout;
     
     if (sidebar) {
         // Start collapsed by default
         sidebar.classList.add('collapsed');
         
-        // Expand on mouse enter
+        // Simple immediate expand on mouse enter
         sidebar.addEventListener('mouseenter', function() {
-            clearTimeout(collapseTimeout);
-            // Small delay to prevent flickering
-            setTimeout(() => {
-                if (sidebar.matches(':hover')) {
-                    sidebar.classList.remove('collapsed');
-                }
-            }, 100);
+            sidebar.classList.remove('collapsed');
         });
         
-        // Collapse on mouse leave with delay
+        // Simple immediate collapse on mouse leave
         sidebar.addEventListener('mouseleave', function() {
-            collapseTimeout = setTimeout(() => {
-                sidebar.classList.add('collapsed');
-            }, 800); // 800ms delay before collapsing
+            sidebar.classList.add('collapsed');
         });
     }
 }

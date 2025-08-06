@@ -2078,17 +2078,7 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
                 <strong>🗓️ Updated:</strong> ${new Date().toLocaleDateString()} | <strong>🔍 Compliance:</strong> BSA, KYC, OFAC compliant
             </div>
             ${formattedData}
-            <div style="margin-top: 1.5rem; padding: 1rem; background: #e7f3ff; border-left: 4px solid #0066cc; border-radius: 4px;">
-                <div style="font-weight: bold; color: #0066cc; margin-bottom: 0.5rem;">🎯 What Makes This Powerful:</div>
-                <div style="font-size: 0.9rem; color: #0066cc;">
-                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
-                        <li><strong>Your data stays internal:</strong> Partners never see raw email addresses</li>
-                        <li><strong>Quarterly reporting:</strong> Share temporal patterns, not exact dates</li>
-                        <li><strong>Zero knowledge sharing:</strong> Coordination without data exposure</li>
-                    </ul>
-                    <strong>This enables secure inter-exchange collaboration!</strong>
-                </div>
-            </div>
+
         `;
     }
 

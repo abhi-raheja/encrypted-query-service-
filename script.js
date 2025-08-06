@@ -1727,6 +1727,16 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
         }
     }
 
+    // Generate a random 64-character hex string for ZK proof simulation
+    function generateZKProof() {
+        const chars = '0123456789abcdef';
+        let result = '';
+        for (let i = 0; i < 64; i++) {
+            result += chars[Math.floor(Math.random() * 16)];
+        }
+        return result;
+    }
+
     // Log compliance audit entries for regulatory purposes
     function logComplianceAudit(userData, proofReceipt) {
         const auditEntry = {
@@ -1735,6 +1745,7 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
             query_time_utc: new Date(proofReceipt.timestamp).toISOString(),
             query_time_local: new Date(proofReceipt.timestamp).toLocaleString(),
             cryptographic_signature: proofReceipt.signature,
+            zero_knowledge_proof: generateZKProof(),
             search_details: {
                 email: userData.email || null,
                 phone: userData.phone || null,
@@ -1820,6 +1831,10 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
                                                  <div class="audit-detail-row">
                              <span class="audit-label">Cryptographic Signature from Responding Exchange:</span>
                              <span class="audit-value signature-hash">${entry.cryptographic_signature.substring(0, 32)}...</span>
+                         </div>
+                         <div class="audit-detail-row">
+                             <span class="audit-label">Coinflex's zero-knowledge proof of decryption:</span>
+                             <span class="audit-value signature-hash">${entry.zero_knowledge_proof.substring(0, 32)}...</span>
                          </div>
                         <div class="audit-detail-row">
                             <span class="audit-label">Search Details:</span>

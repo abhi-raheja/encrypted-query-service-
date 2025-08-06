@@ -1841,6 +1841,16 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
                             <span class="audit-value">${searchItems.join(' | ')}</span>
                         </div>
                         
+                        ${isDecrypted ? `
+                        <div class="audit-verification-status">
+                            <h5>🔐 Verification Status:</h5>
+                            <div class="verification-checks">
+                                <p class="verification-check">✅ MapleCEX's signature matches. Encrypted result and query time is authentic.</p>
+                                <p class="verification-check">✅ Coinflex's zero-knowledge proof validates. Query results are authentic.</p>
+                            </div>
+                        </div>
+                        ` : ''}
+                        
                          <div class="audit-query-results">
                              <h5>📋 Coinflex's claimed query results:</h5>
                                  <div class="audit-result-content">

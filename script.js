@@ -365,6 +365,69 @@ testSuite.addTest('Proof system should detect alex.chen@gmail.com as high risk',
     }
 });
 
+// Test 4b: FIXED - Complete Alex Chen data should work without conflicts
+testSuite.addTest('Complete Alex Chen data should return successful match (not conflict)', async () => {
+    if (typeof proofSystem === 'undefined') {
+        return 'proofSystem not implemented yet';
+    }
+
+    try {
+        // Test the exact data that Rick and Ryan reported as problematic
+        // Using the actual form values that would be sent (lowercase document type)
+        const alexChenData = {
+            email: 'alex.chen@gmail.com',
+            phone: '+1-555-0123',
+            country: 'United States',
+            doc_type: 'passport',  // Form sends lowercase
+            doc_number: 'US123456789'
+        };
+        
+        const proofReceipt = await proofSystem.performMultiFieldRiskQuery(alexChenData);
+        
+        // Should find a match, not report a conflict
+        if (!proofReceipt.result.match_found) {
+            return 'Alex Chen complete data should be found as a match';
+        }
+        
+        // Should NOT be flagged as conflicted or partial
+        if (proofReceipt.result.match_quality === 'CONFLICTED') {
+            return 'Alex Chen complete data should not be flagged as conflicted - this was the bug reported by Rick and Ryan';
+        }
+        
+        if (proofReceipt.result.match_quality === 'PARTIAL_FIELDS') {
+            return 'Alex Chen complete data should not be flagged as partial - should be complete match';
+        }
+        
+        // Should have the expected risk tags
+        if (!proofReceipt.result.risk_tags || !proofReceipt.result.risk_tags.includes('Velocity_Withdrawals')) {
+            return 'Alex Chen should have Velocity_Withdrawals risk tag';
+        }
+        
+        // Should be flagged in Q4 2023
+        if (proofReceipt.result.flagged_quarter !== 'Q4 2023') {
+            return 'Alex Chen should be flagged in Q4 2023';
+        }
+        
+        // Should match ALL logical fields (4 total: email, phone, country, document)
+        const expectedMatchedFields = ['email', 'phone', 'country', 'document'];
+        if (!proofReceipt.result.matched_fields || proofReceipt.result.matched_fields.length !== expectedMatchedFields.length) {
+            return `Alex Chen should match all 4 logical fields (email, phone, country, document), but only matched: ${proofReceipt.result.matched_fields ? proofReceipt.result.matched_fields.join(', ') : 'none'}`;
+        }
+        
+        // Verify each expected field is matched
+        for (const field of expectedMatchedFields) {
+            if (!proofReceipt.result.matched_fields.includes(field)) {
+                return `Alex Chen should match ${field} field, but it's missing from matched fields: ${proofReceipt.result.matched_fields.join(', ')}`;
+            }
+        }
+        
+        console.log('✅ Alex Chen complete data test PASSED - all fields match, no false conflict detection');
+        return true;
+    } catch (error) {
+        return `Alex Chen complete data test failed: ${error.message}`;
+    }
+});
+
 // Test 5: Cryptographic proof system should clear clean users
 testSuite.addTest('Proof system should clear unknown users', async () => {
     if (typeof proofSystem === 'undefined') {
@@ -667,10 +730,14 @@ class CryptographicProofSystem {
         return this.performMultiFieldRiskQuery(userData);
     }
     
-    // Multi-field risk query with hierarchical consistency matching
+    // Multi-field risk query with improved consistency matching
     async performMultiFieldRiskQuery(userData) {
+        // Count fields properly - treat doc_type + doc_number as single logical field
         const providedFields = Object.keys(userData).filter(k => userData[k] && k !== 'timestamp');
-        console.log(`🔍 Multi-field query: ${providedFields.join(', ')}`);
+        
+        // Adjust field count to treat document fields as single logical unit
+        const logicalFieldCount = this.countLogicalFields(userData);
+        console.log(`🔍 Multi-field query: ${providedFields.join(', ')} (${logicalFieldCount} logical fields)`);
         
         // Collect ALL potential matches for analysis
         const potentialMatches = [];
@@ -684,20 +751,16 @@ class CryptographicProofSystem {
             const fieldMatches = [];
             const fieldConflicts = [];
             
-            // Check each field systematically
+            // Check each field systematically - only flag conflicts within the same record
             if (userData.email) {
                 if (riskData.user_data.email === userData.email) {
                     fieldMatches.push('email');
-                } else if (riskData.user_data.email) {
-                    fieldConflicts.push('email');
                 }
             }
             
             if (userData.phone) {
                 if (riskData.user_data.phone === userData.phone) {
                     fieldMatches.push('phone');
-                } else if (riskData.user_data.phone) {
-                    fieldConflicts.push('phone');
                 }
             }
             
@@ -705,39 +768,89 @@ class CryptographicProofSystem {
                 if (riskData.user_data.country && 
                     riskData.user_data.country.toLowerCase() === userData.country.toLowerCase()) {
                     fieldMatches.push('country');
-                } else if (riskData.user_data.country) {
-                    fieldConflicts.push('country');
                 }
             }
             
             if (userData.doc_type && userData.doc_number) {
-                if (riskData.user_data.document_type === userData.doc_type &&
+                if (riskData.user_data.document_type && riskData.user_data.document_number &&
+                    riskData.user_data.document_type.toLowerCase() === userData.doc_type.toLowerCase() &&
                     riskData.user_data.document_number === userData.doc_number) {
                     fieldMatches.push('document');
-                } else if (riskData.user_data.document_type || riskData.user_data.document_number) {
-                    fieldConflicts.push('document');
                 }
             }
             
             // Only consider records with actual matches
             if (fieldMatches.length > 0) {
+                // Check for internal conflicts within this specific record
+                // This only applies when we have partial matches that contradict each other
+                const hasInternalConflicts = this.detectInternalConflicts(userData, riskData, fieldMatches);
+                
                 potentialMatches.push({
                     hash,
                     riskData,
                     matchedFields: fieldMatches,
                     conflictingFields: fieldConflicts,
                     matchStrength: fieldMatches.length,
-                    hasConflicts: fieldConflicts.length > 0
+                    hasConflicts: hasInternalConflicts
                 });
             }
         }
         
         // Analyze matches for consistency and conflicts
-        return this.analyzeMatches(potentialMatches, userData, providedFields);
+        return this.analyzeMatches(potentialMatches, userData, logicalFieldCount);
+    }
+    
+    // Count logical fields (treat document type + number as single field)
+    countLogicalFields(userData) {
+        let count = 0;
+        
+        if (userData.email) count++;
+        if (userData.phone) count++;
+        if (userData.country) count++;
+        if (userData.doc_type && userData.doc_number) count++; // Both required for document field
+        
+        return count;
+    }
+    
+    // Detect actual internal conflicts within a specific record
+    detectInternalConflicts(userData, riskData, matchedFields) {
+        // Only flag as conflict if we have a partial match where some fields match
+        // but other fields in the same record contradict the provided data
+        
+        let hasConflict = false;
+        
+        // Check if we have mixed signals from the same record
+        if (matchedFields.length > 0) {
+            // Example: email matches but phone doesn't match what's in the same record
+            if (userData.email && userData.phone && 
+                matchedFields.includes('email') && 
+                riskData.user_data.phone && 
+                riskData.user_data.phone !== userData.phone) {
+                hasConflict = true;
+            }
+            
+            // Example: phone matches but email doesn't match what's in the same record  
+            if (userData.phone && userData.email && 
+                matchedFields.includes('phone') && 
+                riskData.user_data.email && 
+                riskData.user_data.email !== userData.email) {
+                hasConflict = true;
+            }
+            
+            // Example: document matches but other personal info conflicts
+            if (userData.doc_type && userData.doc_number && userData.email && 
+                matchedFields.includes('document') && 
+                riskData.user_data.email && 
+                riskData.user_data.email !== userData.email) {
+                hasConflict = true;
+            }
+        }
+        
+        return hasConflict;
     }
     
     // Analyze potential matches for consistency and determine final result
-    async analyzeMatches(potentialMatches, userData, providedFields) {
+    async analyzeMatches(potentialMatches, userData, logicalFieldCount) {
         if (potentialMatches.length === 0) {
             console.log('❌ No matches found');
             return this.generateNoMatchReceipt(await sha256(JSON.stringify(userData)), userData);
@@ -749,33 +862,34 @@ class CryptographicProofSystem {
         potentialMatches.sort((a, b) => b.matchStrength - a.matchStrength);
         
         const strongestMatch = potentialMatches[0];
-        const providedFieldCount = providedFields.length;
         
         // SCENARIO 1: Single field query - allow but mark as partial
-        if (providedFieldCount === 1) {
+        if (logicalFieldCount === 1) {
             console.log(`✅ Single-field match on: ${strongestMatch.matchedFields.join(', ')}`);
             return this.generatePartialMatchReceipt(strongestMatch, userData, 'single_field');
         }
         
         // SCENARIO 2: Multi-field query - validate consistency
-        if (providedFieldCount > 1) {
-            return this.validateMultiFieldConsistency(potentialMatches, userData, providedFields);
+        if (logicalFieldCount > 1) {
+            return this.validateMultiFieldConsistency(potentialMatches, userData, logicalFieldCount);
         }
         
         // Fallback
         return this.generateNoMatchReceipt(await sha256(JSON.stringify(userData)), userData);
     }
     
-    // Validate multi-field query consistency
-    async validateMultiFieldConsistency(potentialMatches, userData, providedFields) {
+    // Validate multi-field query consistency with improved logic
+    async validateMultiFieldConsistency(potentialMatches, userData, logicalFieldCount) {
         const strongestMatch = potentialMatches[0];
-        const providedFieldCount = providedFields.length;
         
-        // Check if strongest match covers ALL provided fields
-        const allFieldsMatch = strongestMatch.matchedFields.length === providedFieldCount;
+        // PRIORITY 1: Check for complete matches first (all logical fields match)
+        const allFieldsMatch = strongestMatch.matchedFields.length === logicalFieldCount;
         
-        if (allFieldsMatch && !strongestMatch.hasConflicts) {
-            console.log(`✅ Full consistency match on: ${strongestMatch.matchedFields.join(', ')}`);
+        if (allFieldsMatch) {
+            console.log(`✅ Complete match found on: ${strongestMatch.matchedFields.join(', ')}`);
+            
+            // Even if there are "conflicts" detected, prioritize the complete match
+            // This fixes the Alex Chen issue where complete data was being flagged as conflicted
             
             // Check if user is clean (no risk flags)
             if (strongestMatch.riskData.risk_tags && strongestMatch.riskData.risk_tags.length === 0) {
@@ -788,7 +902,7 @@ class CryptographicProofSystem {
                 );
             }
             
-            // User has risk flags
+            // User has risk flags - return the complete match
             return this.generateMultiFieldProofReceipt(
                 strongestMatch.hash, 
                 strongestMatch.riskData, 
@@ -797,21 +911,99 @@ class CryptographicProofSystem {
             );
         }
         
-        // Check for partial matches with conflicts
+        // PRIORITY 2: Check for genuine internal conflicts (within same record)
         if (strongestMatch.hasConflicts) {
-            console.log(`⚠️ Partial match with conflicts: matched ${strongestMatch.matchedFields.join(', ')}, conflicts on ${strongestMatch.conflictingFields.join(', ')}`);
+            console.log(`⚠️ Internal data conflict detected: matched ${strongestMatch.matchedFields.join(', ')}, but other fields in same record conflict`);
             return this.generateConflictedMatchReceipt(strongestMatch, userData);
         }
         
-        // Multiple potential matches - might be cross-contamination
-        if (potentialMatches.length > 1) {
-            console.log(`🚨 Multiple potential matches detected - possible cross-contamination`);
+        // PRIORITY 3: Check for cross-contamination across different records
+        // Flag cross-contamination when user data spans multiple different records
+        const crossContaminationDetected = this.detectCrossContamination(potentialMatches, userData, logicalFieldCount);
+        if (crossContaminationDetected) {
+            console.log(`🚨 Cross-contamination detected - user data spans multiple different records`);
             return this.generateAmbiguousMatchReceipt(potentialMatches, userData);
         }
         
-        // Partial match (some fields match, others not provided)
-        console.log(`⚠️ Partial match: ${strongestMatch.matchedFields.join(', ')} out of ${providedFieldCount} fields`);
+        // PRIORITY 4: Partial match (some fields match, others not provided)
+        console.log(`⚠️ Partial match: ${strongestMatch.matchedFields.join(', ')} out of ${logicalFieldCount} logical fields`);
         return this.generatePartialMatchReceipt(strongestMatch, userData, 'partial_fields');
+    }
+    
+    // Detect cross-contamination across different records
+    detectCrossContamination(potentialMatches, userData, logicalFieldCount) {
+        // Detect when user data spans multiple different records (identity theft indicator)
+        
+        if (potentialMatches.length < 2) return false;
+        
+        const strongestMatch = potentialMatches[0];
+        const secondStrongestMatch = potentialMatches[1];
+        
+        // If we have a complete match, no cross-contamination
+        if (strongestMatch.matchStrength === logicalFieldCount) {
+            console.log(`✅ Complete match found, no cross-contamination`);
+            return false;
+        }
+        
+        // CASE 1: High-confidence identity fields appearing in multiple records
+        // Example: Email in one record, document in another record
+        const identityFieldsByRecord = new Map(); // Track which records have which identity fields
+        
+        for (const match of potentialMatches) {
+            const recordEmail = match.riskData.user_data.email;
+            const identityFields = [];
+            
+            if (match.matchedFields.includes('email')) identityFields.push('email');
+            if (match.matchedFields.includes('document')) identityFields.push('document');
+            
+            if (identityFields.length > 0) {
+                identityFieldsByRecord.set(recordEmail, identityFields);
+            }
+        }
+        
+        if (identityFieldsByRecord.size > 1) {
+            console.log(`🚨 Identity fields split across ${identityFieldsByRecord.size} different records:`);
+            for (const [recordEmail, fields] of identityFieldsByRecord) {
+                console.log(`  - ${recordEmail}: ${fields.join(', ')}`);
+            }
+            return true;
+        }
+        
+        // CASE 2: Any fields split across multiple records (broader detection)
+        // Example: User data spans multiple different records
+        if (potentialMatches.length > 1 && logicalFieldCount >= 2) {
+            const totalMatchedFields = potentialMatches.reduce((total, match) => total + match.matchStrength, 0);
+            
+            // If total matched fields across all records > strongest single record, indicates splitting
+            if (totalMatchedFields > strongestMatch.matchStrength) {
+                console.log(`🚨 Data spanning multiple records detected:`);
+                console.log(`  - Total fields matched across all records: ${totalMatchedFields}`);
+                console.log(`  - Strongest single record: ${strongestMatch.matchStrength} fields`);
+                
+                potentialMatches.forEach(match => {
+                    console.log(`  - ${match.riskData.user_data.email}: ${match.matchedFields.join(', ')} (${match.matchStrength} fields)`);
+                });
+                
+                return true;
+            }
+        }
+        
+        // CASE 3: Multiple records with significant matches (original logic)
+        const significantMatches = potentialMatches.filter(match => 
+            match.matchStrength >= 2
+        );
+        
+        if (significantMatches.length > 1) {
+            console.log(`🚨 Multiple significant matches: ${significantMatches.length} records with 2+ field matches`);
+            
+            significantMatches.forEach(match => {
+                console.log(`  - ${match.riskData.user_data.email}: ${match.matchedFields.join(', ')}`);
+            });
+            
+            return true;
+        }
+        
+        return false;
     }
     
     // Generate receipt for conflicted matches (data inconsistency detected)

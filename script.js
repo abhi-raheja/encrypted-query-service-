@@ -1804,7 +1804,7 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
                     <div class="audit-entry-header">
                         <h4>Query ID: ${entry.id}</h4>
                         <button onclick="decryptAuditEntry('${entry.id}')" class="audit-decrypt-btn ${isDecrypted ? 'decrypted-state' : ''}" ${isDecrypted ? 'disabled' : ''}>
-                            ${isDecrypted ? '🔓 Decrypted' : '🔓 Decrypt Query Results'}
+                            ${isDecrypted ? '🔓 Verified' : '🔓 Verify query...'}
                         </button>
                     </div>
                     
@@ -1818,7 +1818,7 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
                             <span class="audit-value">${entry.query_time_local}</span>
                         </div>
                                                  <div class="audit-detail-row">
-                             <span class="audit-label">Cryptographic Signature by Responding Exchange:</span>
+                             <span class="audit-label">Cryptographic Signature from Responding Exchange:</span>
                              <span class="audit-value signature-hash">${entry.cryptographic_signature.substring(0, 32)}...</span>
                          </div>
                         <div class="audit-detail-row">
@@ -1826,9 +1826,8 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
                             <span class="audit-value">${searchItems.join(' | ')}</span>
                         </div>
                         
-                                                 ${isDecrypted ? `
-                             <div class="audit-query-results">
-                                 <h5>🔓 Decrypted Query Results:</h5>
+                         <div class="audit-query-results">
+                             <h5>📋 Coinflex's claimed query results:</h5>
                                  <div class="audit-result-content">
                                      <p><strong>Data Source Exchange:</strong> ${entry.original_response.provider || 'MapleCEX'}</p>
                                      ${(() => {
@@ -1886,7 +1885,7 @@ uiTestSuite.addTest('Required DOM elements should exist', () => {
                                      <p><strong>Response Timestamp:</strong> ${entry.original_response.timestamp}</p>
                                  </div>
                              </div>
-                         ` : ''}
+                         </div>
                     </div>
                 </div>
             `;
